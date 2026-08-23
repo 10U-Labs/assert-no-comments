@@ -1,0 +1,58 @@
+---
+description: Assert that nothing in a tree carries a comment or a docstring
+inputs:
+  annotate:
+    default: "true"
+    description: Print each finding as a GitHub Actions ::error annotation
+    required: false
+  count:
+    default: "false"
+    description: Print only how many findings there were
+    required: false
+  exclude:
+    description: Glob patterns to leave out (comma-separated)
+    required: false
+  fail-fast:
+    default: "false"
+    description: Exit on first finding
+    required: false
+  quiet:
+    default: "false"
+    description: Suppress output, exit code only
+    required: false
+  trees:
+    description: Trees to read, space-separated
+    required: true
+  verbose:
+    default: "false"
+    description: Show the files read, the findings and a summary
+    required: false
+  warn-only:
+    default: "false"
+    description: Always exit 0, report only
+    required: false
+name: Assert No Comments
+runs:
+  steps:
+    - run: python3 -m pip install assert-no-comments
+      shell: bash
+    - run: |
+        ARGS=""
+        [ "${{ inputs.annotate }}" = "true" ] && ARGS="$ARGS --annotate"
+        [ "${{ inputs.quiet }}" = "true" ] && ARGS="$ARGS --quiet"
+        [ "${{ inputs.count }}" = "true" ] && ARGS="$ARGS --count"
+        [ "${{ inputs.verbose }}" = "true" ] && ARGS="$ARGS --verbose"
+        [ "${{ inputs.fail-fast }}" = "true" ] && ARGS="$ARGS --fail-fast"
+        [ "${{ inputs.warn-only }}" = "true" ] && ARGS="$ARGS --warn-only"
+        if [ -n "${{ inputs.exclude }}" ]; then
+          ARGS="$ARGS --exclude '${{ inputs.exclude }}'"
+        fi
+        set -f
+        TREES=""
+        for tree in ${{ inputs.trees }}; do
+          TREES="$TREES '$tree'"
+        done
+        set +f
+        eval "assert-no-comments $ARGS $TREES"
+      shell: bash
+  using: composite
