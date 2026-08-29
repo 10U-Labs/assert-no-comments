@@ -1,50 +1,10 @@
 # Working in assert-no-comments
 
-## Table of Contents
-
-- [Overview](#overview)
-- [Conventions](#conventions)
-  - [Commits](#commits)
-    - [A rejected push is fixed forward](#a-rejected-push-is-fixed-forward)
-    - [One closing line per issue](#one-closing-line-per-issue)
-    - [One issue, one commit](#one-issue-one-commit)
-    - [Push once and let the run finish](#push-once-and-let-the-run-finish)
-    - [Straight to main](#straight-to-main)
-  - [Docstrings](#docstrings)
-    - [The package is run against itself](#the-package-is-run-against-itself)
-    - [Why the tool refuses prose is in the README](#why-the-tool-refuses-prose-is-in-the-readme)
-  - [Issues](#issues)
-    - [An issue states one solution](#an-issue-states-one-solution)
-    - [The seven sections](#the-seven-sections)
-  - [Markdown](#markdown)
-    - [A paragraph is one line](#a-paragraph-is-one-line)
-  - [Readers](#readers)
-    - [Every language is read by its own parser](#every-language-is-read-by-its-own-parser)
-    - [What a new language costs](#what-a-new-language-costs)
-  - [Releases](#releases)
-    - [Every green push publishes](#every-green-push-publishes)
-    - [The tag is made before the build](#the-tag-is-made-before-the-build)
-  - [Tests](#tests)
-    - [A conftest with no fixture in it stays](#a-conftest-with-no-fixture-in-it-stays)
-    - [Cover every tier the change touches](#cover-every-tier-the-change-touches)
-    - [One assert per pytest](#one-assert-per-pytest)
-    - [Test first](#test-first)
-    - [The coverage gate is on the in-process tiers](#the-coverage-gate-is-on-the-in-process-tiers)
-    - [Trees under test go in samples](#trees-under-test-go-in-samples)
-  - [Verification](#verification)
-    - [CI is the source of truth](#ci-is-the-source-of-truth)
-    - [Configuration goes on the command line](#configuration-goes-on-the-command-line)
-    - [Finding the run](#finding-the-run)
-    - [Keys in a YAML file are alphabetical](#keys-in-a-yaml-file-are-alphabetical)
-    - [Path filters are not shell globs](#path-filters-are-not-shell-globs)
-- [Notes](#notes)
-  - [Where a new convention goes](#where-a-new-convention-goes)
-
 ## Overview
 
 These are the standing conventions for working in this repository. A section states a rule, a trap or the reason behind one, and links the longer write-up where there is one — one note per topic under `.claude/memories/`.
 
-A section here does not restate what a file in the tree already says. `README.md` is the argument for the tool and the reference for what it reads; `.github/workflows/release.yml` is the list of jobs a push has to get past. An inventory copied into this file is a second copy that goes stale with nothing to catch it, so where the answer is in a workflow file or in the README, this file points at it rather than paraphrasing it.
+A section here does not restate what a file in the tree already says. `README.md` is the argument for the tool and the reference for what it reads; `.github/workflows/release.yml` is the list of jobs a push has to get past. An inventory copied into this file is a second copy that goes stale with nothing to catch it, so where the answer is in a workflow file or in the README, this file points at it rather than paraphrasing it. A table of contents is that same second copy of the headings below it, which is why this file has none.
 
 ## Conventions
 
@@ -64,7 +24,7 @@ One issue is solved by one commit and one push. An issue that cannot be done in 
 
 #### Push once and let the run finish
 
-Both workflows set `cancel-in-progress` on a group keyed by workflow and ref, so a second push cancels the run the first one started. The tree is still verified, by the later run, but the cancelled commit loses its own release, because `release` never gets its `needs`. Push once per issue and read that run.
+Both workflows cancel the run in progress when a second push lands on the same ref. The tree is still verified, by the later run, but the cancelled commit loses its own release, because `release` never gets its `needs`. Push once per issue and read that run.
 
 #### Straight to main
 
@@ -74,15 +34,9 @@ Work goes straight to `main` as direct commits. Do not create a feature branch, 
 
 #### The package is run against itself
 
-`release.yml` has an `assert-no-comments` job, listed in `release`'s `needs`, and it reads `${{ github.workspace }}` through `./` — the composite action as this commit defines it — so the tool this repository publishes reads the repository that publishes it. `e93f45b` added the job and `2b2a959` pointed it at the action. That is the half of #3 that has landed.
+`release.yml` runs the tool this repository publishes over the repository that publishes it, through `./`, and `release` needs that job. It is red, and has been since it was added: `src/` and `test/` carry a docstring on every module, class and function, because `pylint-src` and `pylint-test` gate on `--fail-on=C,R,W` with the three `missing-*-docstring` checks left on. The prose the tool forbids is the prose pylint requires, both rules are in force at once, and nothing has published from either commit.
 
-The job is red, on 363 findings, and has been since it was added. `src/assert_no_comments/` and `test/` carry a docstring on every module, class and function, which is exactly what the tool reports, and `pylint-src` and `pylint-test` still gate on `--fail-on=C,R,W` with the three `missing-*-docstring` checks left on, so the prose the tool forbids is prose pylint requires. Both rules are in force at once, no push has been green since `e93f45b`, and `release` has been skipped for want of its `needs` — nothing has published from either commit.
-
-The rest of #3 is one commit: the three `--disable=missing-*-docstring` flags onto both pylint steps, on the command line the way the sibling `assert-python-definition-is-used` already passes them, and every docstring in `src/` and `test/` deleted with them. Until that commit lands, a new module, class or test still carries its docstring, because `pylint-test` has not changed yet; a red `assert-no-comments` is the known state of the tree rather than something a push introduced, so read a run for what is red beside it.
-
-#### Why the tool refuses prose is in the README
-
-The case for the rule — what a comment was about to say and where each of those things goes instead — is the "Why" section of `README.md`, and what counts as a comment is the table below it. Point a reader there rather than restating it. This file says how work is done here; the README says what the tool is for, and the two saying it in different words is how they come apart.
+That is #3, and until it lands — the `--disable=missing-*-docstring` flags onto both pylint steps and every docstring in `src/` and `test/` deleted with them, in one commit — a new module, class or test still carries its docstring, and a red `assert-no-comments` is the known state of the tree rather than something a push introduced. Read a run for what is red beside it.
 
 ### Issues
 
@@ -98,7 +52,7 @@ An issue has seven sections in a fixed order: "Problem", "Why Unit Tests Did Not
 
 #### A paragraph is one line
 
-`markdownlint` runs over the repository with `--disable MD013`, so nothing holds a line to a column count: a paragraph is written as one line and the reader's editor wraps it. Do not put newlines inside prose to make it fit a width, and do not wrap commit message bodies either — nothing checks those, but every commit from this one on is written the same way. Hard wrapping is what makes a one-word edit arrive as a rewritten paragraph, because the words after it move onto the lines below and the diff marks all of them; a paragraph on one line is a diff that names the paragraph that changed and nothing else.
+`markdownlint` runs with `--disable MD013`, so nothing holds a line to a column count: a paragraph is written as one line and the reader's editor wraps it. Do not put newlines inside prose to make it fit a width, and do not wrap commit message bodies either — nothing checks those, but every commit from this one on is written the same way. Hard wrapping is what makes a one-word edit arrive as a rewritten paragraph, because the words after it move onto the lines below and the diff marks all of them; a paragraph on one line is a diff that names the paragraph that changed and nothing else.
 
 The flag is on the command line rather than in a `.markdownlint.json`, because [configuration goes on the command line](#configuration-goes-on-the-command-line) — `assert-no-linter-config-files` runs with `--linters pylint,mypy,yamllint` and would not have caught the file, so this one is on the convention rather than on a job. `--disable` takes a list, so the `--` before the glob is what ends it; without it `markdownlint` reads `'**/*.md'` as a further rule name and lints no files at all.
 
@@ -106,15 +60,11 @@ The flag is on the command line rather than in a `.markdownlint.json`, because [
 
 ### Readers
 
-Longer: [every-language-is-read-by-its-own-parser](.claude/memories/every-language-is-read-by-its-own-parser.md).
-
 #### Every language is read by its own parser
 
-A reader in `src/assert_no_comments/scanner.py` is a parser for the language it reads, never a walk over the characters. Python goes through `tokenize` and `ast`, YAML through `yaml.scan`, and JavaScript, TypeScript, TSX and OpenTofu through their tree-sitter grammars. The rule was bought rather than chosen. `marked_comments` guessed whether a `/` opened a regular expression from the last non-space character before it, `<` was in that table, so the slash of a JSX closing tag looked like the start of a pattern and the walk swallowed the rest of the line. That is issue #2. Widening the table moves which inputs are wrong; it does not stop there being inputs that are wrong, and the failure is silent in the direction that matters, because a missed comment leaves a job green and nobody re-reads a green job.
+A reader in `src/assert_no_comments/scanner.py` is a parser for the language it reads, never a walk over the characters. A new language gets a grammar, an entry in `READERS`, and a reader whose whole body is `parsed_comments(text, THAT_GRAMMAR)` — never a marker table — and a dialect that reads the same characters differently gets a grammar of its own rather than a further suffix on the one it resembles.
 
-#### What a new language costs
-
-A new language gets a grammar, an entry in `READERS`, and a reader whose whole body is `parsed_comments(text, THAT_GRAMMAR)` — never a marker table. Dialects that read the same characters differently are separate grammars: `.tsx` is not `.ts` with elements in it, because `<string>y` asserts a type in one and opens an element in the other. A grammar per language is a dependency per language, and `tree-sitter-language-pack` is the one that looks like it would save that; it would ship 371 grammars to serve four, every one of them a version this package publishes and does not use. The never-fail contract holds either way — a file the grammar cannot parse gives findings rather than an exit code of 2 — and what a broken file yields is whatever the grammar could still recognise.
+The rule was bought rather than chosen, by issue #2, and what it cost is in [every-language-is-read-by-its-own-parser](.claude/memories/every-language-is-read-by-its-own-parser.md). Read that before adding a language, and before reaching for `tree-sitter-language-pack`.
 
 ### Releases
 
@@ -124,7 +74,7 @@ A green push to `main` touching the paths `release.yml` filters on tags, builds,
 
 #### The tag is made before the build
 
-`release` creates the tag, builds, and only then pushes the tag. The version is `setuptools-scm` reading that tag, and the tag is a UTC timestamp, so a build that ran before the tagging step would publish a version derived from the previous tag instead. Keep those steps in that order.
+The version is `setuptools-scm` reading the tag `release` has just made, and the tag is a UTC timestamp, so a build that ran before the tagging step would publish a version derived from the previous tag instead. Keep those steps in the order they are in.
 
 ### Tests
 
@@ -138,7 +88,7 @@ A change is covered at every tier it touches: `test/unit/` for the readers and t
 
 #### One assert per pytest
 
-Every test asserts once. `assert-one-assert-per-pytest` is a job in `release.yml`, so a second assert fails the push rather than being noticed in review. A test name is a sentence saying what is true, `test_a_hash_inside_a_string_is_not_reported`, and carries the docstring `pylint-test` requires.
+Every test asserts once, and `assert-one-assert-per-pytest` fails the push over a second one rather than leaving it to be noticed in review. A test name is a sentence saying what is true, `test_a_hash_inside_a_string_is_not_reported`, and carries the docstring `pylint-test` requires.
 
 #### Test first
 
@@ -146,7 +96,7 @@ We do TDD: the test is written first, then the code that makes it pass. Test-fir
 
 #### The coverage gate is on the in-process tiers
 
-`unit-tests` and `integration-tests` each run with `--cov=assert_no_comments --cov-branch --cov-fail-under=100`, so each tier stands on its own rather than on the two together. `e2e-tests` carries no coverage gate and cannot: `run_cli_subprocess` runs the command in another process, which is the point of that tier and also why its lines are invisible to `coverage`. A line reachable only through the console script is therefore reached by `run_cli`, the in-process fixture in `test/conftest.py`, and asserted again through the subprocess.
+`unit-tests` and `integration-tests` each gate on total branch coverage of the package, so each tier stands on its own rather than on the two together. `e2e-tests` carries no coverage gate and cannot: `run_cli_subprocess` runs the command in another process, which is the point of that tier and also why its lines are invisible to `coverage`. A line reachable only through the console script is therefore reached by `run_cli`, the in-process fixture in `test/conftest.py`, and asserted again through the subprocess.
 
 #### Trees under test go in samples
 
@@ -156,11 +106,11 @@ We do TDD: the test is written first, then the code that makes it pass. Test-fir
 
 #### CI is the source of truth
 
-Do not run tests, linters or builds locally to verify a change — write the code and the tests, commit, push to `main`, and read the run with `gh run list`, `gh run watch` and `gh run view --log-failed`. Fifteen jobs gate a release, `release` itself being the sixteenth, and between them they want Python, Node, four tree-sitter grammars and eight tools this machine does not otherwise carry; CI installs all of it per job and checks every gate at once. Reading the code locally is still right and cheap: `grep` and file reads are how the useful findings surface.
+Do not run tests, linters or builds locally to verify a change — write the code and the tests, commit, push to `main`, and read the run with `gh run list`, `gh run watch` and `gh run view --log-failed`. The jobs `release` needs want Python, Node, four tree-sitter grammars and eight tools this machine does not otherwise carry; CI installs all of it per job and checks every gate at once. Reading the code locally is still right and cheap: `grep` and file reads are how the useful findings surface.
 
 #### Configuration goes on the command line
 
-There is no `.pylintrc`, no `mypy.ini`, no `.yamllint` and no inline `pylint: disable` anywhere, and there cannot be: `assert-no-linter-config-files` and `assert-no-inline-directives` fail the run over either. Every option a tool takes is written into the step that runs it — the yamllint rules arrive as `--config-data`, `pylint` gets `--fail-on=C,R,W --fail-under=10.0`, `mypy` gets `--strict` over `src/`. A rule that cannot be turned off is the point: the cost of it lands as a decision made somewhere visible, which is what the docstrings are: [the package is run against itself](#the-package-is-run-against-itself) and the flags that answer for that go on the pylint steps.
+There is no `.pylintrc`, no `mypy.ini`, no `.yamllint` and no inline `pylint: disable` anywhere, and there cannot be: `assert-no-linter-config-files` and `assert-no-inline-directives` fail the run over either. Every option a tool takes is written into the step that runs it. A rule that cannot be turned off is the point: the cost of it lands as a decision made somewhere visible, which is what the docstrings are — [the package is run against itself](#the-package-is-run-against-itself), and the flags that answer for that go on the pylint steps.
 
 #### Finding the run
 
@@ -168,7 +118,7 @@ Find the run by the full forty-character hash from `git rev-parse HEAD`. `gh run
 
 #### Keys in a YAML file are alphabetical
 
-`yamllint` runs `--strict` with `key-ordering: enable`, so every mapping in every YAML file here is in alphabetical order — which is why `name` and `on` sit at the bottom of a workflow file, under `jobs`, and why the jobs themselves are alphabetical. `truthy` allows `on` so that key needs no quoting, and `empty-lines` allows none inside a file. A new job goes in its alphabetical place, and in the `needs` list of `release`, which is sorted the same way.
+`yamllint` runs `--strict` with `key-ordering: enable`, so every mapping in every YAML file here is in alphabetical order — which is why `name` and `on` sit at the bottom of a workflow file, under `jobs`, and why the jobs themselves are alphabetical. A new job goes in its alphabetical place, and in the `needs` list of `release`, which is sorted the same way.
 
 #### Path filters are not shell globs
 
