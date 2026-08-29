@@ -15,65 +15,9 @@ if TYPE_CHECKING:
     from collections.abc import Callable
 
 
-CLEAN_PYTHON = """\
-def counted():
-    return 1
-"""
+def _sample(directory: Path, name: str) -> str:
+    return (directory / "samples" / f"{name}.txt").read_text(encoding="utf-8")
 
-COMMENTED_PYTHON = """\
-def counted():
-    return 1  # why
-"""
-
-DOCUMENTED_PYTHON = '''\
-def counted():
-    """What counted does."""
-    return 1
-'''
-
-BROKEN_PYTHON = """\
-def counted(
-"""
-
-VENDORED_JAVASCRIPT = """\
-// somebody else wrote this
-const leaflet = 1;
-"""
-
-CLEAN_TSX = """\
-const App = () => <div />;
-
-export default App;
-"""
-
-COMMENTED_TSX = """\
-const App = () => (
-  <div>
-    {/* why */}
-    <Foo />
-  </div> // why
-);
-
-/* why */
-export default App;
-"""
-
-CLEAN_WORKFLOW = """\
----
-jobs:
-  counting: 1
-"""
-
-COMMENTED_WORKFLOW = """\
----
-jobs:
-  # why
-  counting: 1
-"""
-
-PROSE = """\
-# A heading, which is not a comment.
-"""
 
 SOURCE = "src/counting.py"
 COMPONENT = "src/App.tsx"
@@ -82,13 +26,13 @@ VENDORED = "src/www/spa/vendor/leaflet.js"
 NOTES = "src/notes.md"
 
 CLEAN_PROJECT = {
-    SOURCE: CLEAN_PYTHON,
-    WORKFLOW: CLEAN_WORKFLOW,
-    VENDORED: VENDORED_JAVASCRIPT,
-    NOTES: PROSE,
+    SOURCE: "clean_python",
+    WORKFLOW: "clean_workflow",
+    VENDORED: "vendored_javascript",
+    NOTES: "prose",
 }
 
-PROJECT = {**CLEAN_PROJECT, SOURCE: COMMENTED_PYTHON}
+PROJECT = {**CLEAN_PROJECT, SOURCE: "commented_python"}
 
 EXCLUDE_VENDORED = "src/www/spa/vendor/*"
 
@@ -132,13 +76,23 @@ def run_cli_subprocess() -> Callable[[list[str]], tuple[int, str, str]]:
 
 
 @pytest.fixture
-def write_tree(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Callable[[dict[str, str]], Path]:
+def write_tree(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, request: pytest.FixtureRequest
+) -> Callable[[dict[str, str]], Path]:
     def builder(files: dict[str, str]) -> Path:
-        for relative, content in files.items():
+        for relative, name in files.items():
             path = tmp_path / relative
             path.parent.mkdir(parents=True, exist_ok=True)
-            path.write_text(content, encoding="utf-8")
+            path.write_text(_sample(request.path.parent, name), encoding="utf-8")
         monkeypatch.chdir(tmp_path)
         return tmp_path
 
     return builder
+
+
+@pytest.fixture
+def sample(request: pytest.FixtureRequest) -> Callable[[str], str]:
+    def reader(name: str) -> str:
+        return _sample(request.path.parent, name)
+
+    return reader

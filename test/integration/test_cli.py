@@ -5,14 +5,8 @@ import runpy
 import sys
 from pathlib import Path
 from test.conftest import (
-    BROKEN_PYTHON,
     CLEAN_PROJECT,
-    CLEAN_TSX,
-    COMMENTED_PYTHON,
-    COMMENTED_TSX,
-    COMMENTED_WORKFLOW,
     COMPONENT,
-    DOCUMENTED_PYTHON,
     EXCLUDE_VENDORED,
     FULL_RUN,
     NOTES,
@@ -50,6 +44,7 @@ if TYPE_CHECKING:
     from collections.abc import Callable
 
     RunCli = Callable[[list[str]], tuple[int, str, str]]
+    Sample = Callable[[str], str]
     WriteTree = Callable[[dict[str, str]], Path]
 
 
@@ -70,11 +65,11 @@ class TestPythonFilesOnDisk:
     def test_reports_a_comment(self, tmp_path: Path) -> None:
         assert _lines(tmp_path, "a.py", "# why\nx = 1\n") == [1]
 
-    def test_reports_a_trailing_comment(self, tmp_path: Path) -> None:
-        assert _lines(tmp_path, "a.py", COMMENTED_PYTHON) == [2]
+    def test_reports_a_trailing_comment(self, tmp_path: Path, sample: Sample) -> None:
+        assert _lines(tmp_path, "a.py", sample("commented_python")) == [2]
 
-    def test_reports_a_docstring(self, tmp_path: Path) -> None:
-        assert _lines(tmp_path, "a.py", DOCUMENTED_PYTHON) == [2]
+    def test_reports_a_docstring(self, tmp_path: Path, sample: Sample) -> None:
+        assert _lines(tmp_path, "a.py", sample("documented_python")) == [2]
 
     def test_reports_a_module_docstring(self, tmp_path: Path) -> None:
         assert _lines(tmp_path, "a.py", '"""Why."""\nx = 1\n') == [1]
@@ -97,18 +92,20 @@ class TestPythonFilesOnDisk:
     def test_leaves_an_empty_file_alone(self, tmp_path: Path) -> None:
         assert _lines(tmp_path, "a.py", "") == []
 
-    def test_a_file_that_will_not_parse_is_unreadable(self, tmp_path: Path) -> None:
+    def test_a_file_that_will_not_parse_is_unreadable(
+        self, tmp_path: Path, sample: Sample
+    ) -> None:
         with pytest.raises(Unreadable):
-            _lines(tmp_path, "a.py", BROKEN_PYTHON)
+            _lines(tmp_path, "a.py", sample("broken_python"))
 
 
 @pytest.mark.integration
 class TestYamlFilesOnDisk:
-    def test_reports_a_comment(self, tmp_path: Path) -> None:
-        assert _lines(tmp_path, "a.yml", COMMENTED_WORKFLOW) == [3]
+    def test_reports_a_comment(self, tmp_path: Path, sample: Sample) -> None:
+        assert _lines(tmp_path, "a.yml", sample("commented_workflow")) == [3]
 
-    def test_reads_the_yaml_suffix_too(self, tmp_path: Path) -> None:
-        assert _lines(tmp_path, "a.yaml", COMMENTED_WORKFLOW) == [3]
+    def test_reads_the_yaml_suffix_too(self, tmp_path: Path, sample: Sample) -> None:
+        assert _lines(tmp_path, "a.yaml", sample("commented_workflow")) == [3]
 
     def test_leaves_a_hash_in_a_block_scalar_alone(self, tmp_path: Path) -> None:
         assert _lines(tmp_path, "a.yml", '---\nrun: >-\n  echo "# nope"\n') == []
@@ -219,11 +216,15 @@ class TestTypescriptFilesOnDisk:
 
 @pytest.mark.integration
 class TestTsxFilesOnDisk:
-    def test_reports_every_form_a_comment_takes(self, tmp_path: Path) -> None:
-        assert _lines(tmp_path, "App.tsx", COMMENTED_TSX) == [3, 5, 8]
+    def test_reports_every_form_a_comment_takes(
+        self, tmp_path: Path, sample: Sample
+    ) -> None:
+        assert _lines(tmp_path, "App.tsx", sample("commented_tsx")) == [3, 5, 8]
 
-    def test_a_file_with_no_comment_in_it_reports_nothing(self, tmp_path: Path) -> None:
-        assert _lines(tmp_path, "App.tsx", CLEAN_TSX) == []
+    def test_a_file_with_no_comment_in_it_reports_nothing(
+        self, tmp_path: Path, sample: Sample
+    ) -> None:
+        assert _lines(tmp_path, "App.tsx", sample("clean_tsx")) == []
 
     def test_an_element_does_not_hide_the_comment_after_it(self, tmp_path: Path) -> None:
         assert _lines(tmp_path, "App.tsx", "const a = <div />;\n// why\n") == [2]
@@ -332,9 +333,9 @@ class TestCollectingFiles:
 
 @pytest.mark.integration
 class TestReadingFiles:
-    def test_reads_the_content(self, write_tree: WriteTree) -> None:
+    def test_reads_the_content(self, write_tree: WriteTree, sample: Sample) -> None:
         write_tree(PROJECT)
-        assert _read(SOURCE, ScanResult()) == COMMENTED_PYTHON
+        assert _read(SOURCE, ScanResult()) == sample("commented_python")
 
     def test_a_missing_file_reads_as_nothing(self, write_tree: WriteTree) -> None:
         write_tree(PROJECT)
@@ -370,13 +371,13 @@ class TestReadingFiles:
         assert result.files_scanned == 0
 
     def test_a_file_that_will_not_parse_records_an_error(self, write_tree: WriteTree) -> None:
-        write_tree({**PROJECT, "src/broken.py": BROKEN_PYTHON})
+        write_tree({**PROJECT, "src/broken.py": "broken_python"})
         result = ScanResult()
         read_comments(["src/broken.py"], result)
         assert result.had_error
 
     def test_a_file_that_will_not_parse_is_not_counted(self, write_tree: WriteTree) -> None:
-        write_tree({**PROJECT, "src/broken.py": BROKEN_PYTHON})
+        write_tree({**PROJECT, "src/broken.py": "broken_python"})
         result = ScanResult()
         read_comments(["src/broken.py"], result)
         assert result.files_scanned == 0
@@ -447,17 +448,17 @@ class TestTheCommandOverATree:
         assert SOURCE in run_cli(FULL_RUN)[1]
 
     def test_reads_a_workflow_file(self, write_tree: WriteTree, run_cli: RunCli) -> None:
-        write_tree({**CLEAN_PROJECT, WORKFLOW: COMMENTED_WORKFLOW})
+        write_tree({**CLEAN_PROJECT, WORKFLOW: "commented_workflow"})
         assert WORKFLOW in run_cli(FULL_RUN)[1]
 
     def test_reads_a_typescript_component(self, write_tree: WriteTree, run_cli: RunCli) -> None:
-        write_tree({**CLEAN_PROJECT, COMPONENT: COMMENTED_TSX})
+        write_tree({**CLEAN_PROJECT, COMPONENT: "commented_tsx"})
         assert COMPONENT in run_cli(FULL_RUN)[1]
 
     def test_counts_every_comment_a_component_carries(
         self, write_tree: WriteTree, run_cli: RunCli
     ) -> None:
-        write_tree({**CLEAN_PROJECT, COMPONENT: COMMENTED_TSX})
+        write_tree({**CLEAN_PROJECT, COMPONENT: "commented_tsx"})
         assert run_cli([*FULL_RUN, "--count"])[1] == "3\n"
 
     def test_leaves_the_vendored_javascript_alone(
@@ -479,7 +480,7 @@ class TestTheCommandOverATree:
     def test_fail_fast_stops_at_the_first_finding(
         self, write_tree: WriteTree, run_cli: RunCli
     ) -> None:
-        write_tree({**PROJECT, WORKFLOW: COMMENTED_WORKFLOW})
+        write_tree({**PROJECT, WORKFLOW: "commented_workflow"})
         assert len(run_cli([*FULL_RUN, "--fail-fast"])[1].splitlines()) == 1
 
     def test_warn_only_succeeds_with_findings(
@@ -546,7 +547,7 @@ class TestTheCommandWhenATreeWillNotRead:
     def test_a_broken_file_in_the_tree_is_an_error(
         self, write_tree: WriteTree, run_cli: RunCli
     ) -> None:
-        write_tree({**CLEAN_PROJECT, "src/broken.py": BROKEN_PYTHON})
+        write_tree({**CLEAN_PROJECT, "src/broken.py": "broken_python"})
         assert run_cli(FULL_RUN)[0] == EXIT_ERROR
 
     def test_the_output_modes_are_mutually_exclusive(

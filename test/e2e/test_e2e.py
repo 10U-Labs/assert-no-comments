@@ -1,10 +1,7 @@
 from __future__ import annotations
 
 from test.conftest import (
-    BROKEN_PYTHON,
     CLEAN_PROJECT,
-    COMMENTED_TSX,
-    COMMENTED_WORKFLOW,
     COMPONENT,
     EXCLUDE_VENDORED,
     FULL_RUN,
@@ -59,19 +56,19 @@ class TestTheCommandAsAStepRunsIt:
     def test_reads_a_workflow_file(
         self, write_tree: WriteTree, run_cli_subprocess: RunCli
     ) -> None:
-        write_tree({**CLEAN_PROJECT, WORKFLOW: COMMENTED_WORKFLOW})
+        write_tree({**CLEAN_PROJECT, WORKFLOW: "commented_workflow"})
         assert WORKFLOW in run_cli_subprocess(FULL_RUN)[1]
 
     def test_reads_a_typescript_component(
         self, write_tree: WriteTree, run_cli_subprocess: RunCli
     ) -> None:
-        write_tree({**CLEAN_PROJECT, COMPONENT: COMMENTED_TSX})
+        write_tree({**CLEAN_PROJECT, COMPONENT: "commented_tsx"})
         assert COMPONENT in run_cli_subprocess(FULL_RUN)[1]
 
     def test_counts_every_comment_a_component_carries(
         self, write_tree: WriteTree, run_cli_subprocess: RunCli
     ) -> None:
-        write_tree({**CLEAN_PROJECT, COMPONENT: COMMENTED_TSX})
+        write_tree({**CLEAN_PROJECT, COMPONENT: "commented_tsx"})
         assert run_cli_subprocess([*FULL_RUN, "--count"])[1] == "3\n"
 
     def test_leaves_the_vendored_javascript_alone(
@@ -113,13 +110,13 @@ class TestTheCommandAsAStepRunsIt:
     def test_a_broken_file_is_an_error(
         self, write_tree: WriteTree, run_cli_subprocess: RunCli
     ) -> None:
-        write_tree({**CLEAN_PROJECT, "src/broken.py": BROKEN_PYTHON})
+        write_tree({**CLEAN_PROJECT, "src/broken.py": "broken_python"})
         assert run_cli_subprocess(FULL_RUN)[0] == 2
 
     def test_a_broken_file_is_named(
         self, write_tree: WriteTree, run_cli_subprocess: RunCli
     ) -> None:
-        write_tree({**CLEAN_PROJECT, "src/broken.py": BROKEN_PYTHON})
+        write_tree({**CLEAN_PROJECT, "src/broken.py": "broken_python"})
         assert "Could not parse src/broken.py" in run_cli_subprocess(FULL_RUN)[2]
 
     def test_verbose_summarises_the_run(
