@@ -88,4 +88,3 @@ def write_tree(
         return tmp_path
 
     return builder
-
