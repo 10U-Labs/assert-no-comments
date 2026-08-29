@@ -26,7 +26,6 @@
     - [CI is the source of truth](#ci-is-the-source-of-truth)
     - [Configuration goes on the command line](#configuration-goes-on-the-command-line)
     - [Finding the run](#finding-the-run)
-    - [Keys in a YAML file are alphabetical](#keys-in-a-yaml-file-are-alphabetical)
     - [Path filters are not shell globs](#path-filters-are-not-shell-globs)
 - [Notes](#notes)
   - [Where a new convention goes](#where-a-new-convention-goes)
@@ -112,10 +111,6 @@ There is no `.pylintrc`, no `mypy.ini`, no `.yamllint` and no inline `pylint: di
 #### Finding the run
 
 Find the run by the full forty-character hash from `git rev-parse HEAD`. `gh run list --commit` returns an empty list for the short hash `git log --oneline` prints, which is indistinguishable from a run that has not started. A push starts one workflow or both, depending on what it touched, and the change is done when each run that started is green rather than when the first one is.
-
-#### Keys in a YAML file are alphabetical
-
-`yamllint` runs `--strict` with `key-ordering`, so every mapping in every YAML file here is in alphabetical order — which is why `name` and `on` sit at the bottom of a workflow file, under `jobs`. A new job goes in its alphabetical place, and in the `needs` list of `release`, sorted the same way.
 
 #### Path filters are not shell globs
 
