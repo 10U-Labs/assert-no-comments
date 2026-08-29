@@ -4,7 +4,7 @@ import argparse
 import importlib
 import sys
 from pathlib import Path
-from test.conftest import read_sample
+from test_assert_no_comments.support import read_sample
 from unittest.mock import patch
 
 import pytest

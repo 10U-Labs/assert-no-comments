@@ -4,7 +4,7 @@ import argparse
 import runpy
 import sys
 from pathlib import Path
-from test.conftest import (
+from test_assert_no_comments.support import (
     CLEAN_PROJECT,
     COMPONENT,
     EXCLUDE_VENDORED,

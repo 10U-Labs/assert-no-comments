@@ -10,33 +10,10 @@ from typing import TYPE_CHECKING
 import pytest
 
 from assert_no_comments.cli import main
+from test_assert_no_comments.support import read_sample
 
 if TYPE_CHECKING:
     from collections.abc import Callable
-
-
-def read_sample(directory: Path, name: str) -> str:
-    return (directory / "samples" / f"{name}.txt").read_text(encoding="utf-8")
-
-
-SOURCE = "src/counting.py"
-COMPONENT = "src/App.tsx"
-WORKFLOW = ".github/workflows/release.yml"
-VENDORED = "src/www/spa/vendor/leaflet.js"
-NOTES = "src/notes.md"
-
-CLEAN_PROJECT = {
-    SOURCE: "project/clean_python",
-    WORKFLOW: "project/clean_workflow",
-    VENDORED: "project/vendored_javascript",
-    NOTES: "project/prose",
-}
-
-PROJECT = {**CLEAN_PROJECT, SOURCE: "project/commented_python"}
-
-EXCLUDE_VENDORED = "src/www/spa/vendor/*"
-
-FULL_RUN = ["src", ".github/workflows", "--exclude", EXCLUDE_VENDORED]
 
 
 def pytest_configure(config: pytest.Config) -> None:

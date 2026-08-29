@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from test.conftest import (
+from test_assert_no_comments.support import (
     CLEAN_PROJECT,
     COMPONENT,
     EXCLUDE_VENDORED,

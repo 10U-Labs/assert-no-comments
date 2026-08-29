@@ -20,6 +20,8 @@
     - [Every language is read by its own parser](#every-language-is-read-by-its-own-parser)
   - [Tests](#tests)
     - [A conftest with no fixture in it stays](#a-conftest-with-no-fixture-in-it-stays)
+    - [A sample is a file, not a literal](#a-sample-is-a-file-not-a-literal)
+    - [Anything importable lives outside conftest](#anything-importable-lives-outside-conftest)
     - [Cover every tier the change touches](#cover-every-tier-the-change-touches)
     - [Test first](#test-first)
   - [Verification](#verification)
@@ -87,11 +89,19 @@ A reader in `src/assert_no_comments/scanner.py` is a parser for the language it 
 
 #### A conftest with no fixture in it stays
 
-`test/integration/conftest.py` and `test/e2e/conftest.py` are zero bytes, and they stay. The file is what tells whoever writes the next fixture that this level exists to hold one; left to itself a session writes setup into the test file already open in front of it. Zero bytes is what an empty file is here, in a conftest and in an `__init__.py` alike: a docstring, a `pass` or a blank line to stand in for content is content, and the file is empty or it is not. Nothing in CI fails when one of them is deleted, so the file is kept for the reader rather than for a gate.
+`lib/python/test_assert_no_comments/integration/conftest.py` and its e2e counterpart are zero bytes, and they stay. The file is what tells whoever writes the next fixture that this level exists to hold one; left to itself a session writes setup into the test file already open in front of it. Zero bytes is what an empty file is here: a docstring, a `pass` or a blank line to stand in for content is content, and the file is empty or it is not. Nothing in CI fails when one of them is deleted, so the file is kept for the reader rather than for a gate.
+
+#### A sample is a file, not a literal
+
+Source text handed to a reader is a `.txt` file under the `samples/` directory of the tier that reads it, named for the test that reads it, and loaded with `sample()`. `.txt` is in no gate's glob and in no entry of `READERS`, so a sample carrying a comment sits in the tree untouched by the tool that would otherwise fail the build over it, and needs no `--exclude`. The eight that make up the project tree live in `samples/project/`, because they belong to no single test and both CLI tiers write them.
+
+#### Anything importable lives outside conftest
+
+`conftest.py` holds fixtures and hooks, which pytest finds by itself; a test module never imports from it. What two tiers share by import — `read_sample`, the project paths, `CLEAN_PROJECT` and `FULL_RUN` — is in `lib/python/test_assert_no_comments/support.py`. Importing a conftest works only while a package layout keeps its module name unique, and binds the suite to that layout for a reason nothing states.
 
 #### Cover every tier the change touches
 
-`test/unit/` for the readers and the CLI helpers, `test/integration/` for the CLI driven over a real tree, `test/e2e/` for the installed console script run the way a workflow step runs it. Unit and integration each gate on full branch coverage on their own rather than on the two together. `e2e-tests` carries no coverage gate and cannot, since it runs the command in another process, so a line reachable only through the console script is reached by `run_cli`, the in-process fixture in `test/conftest.py`, and asserted again through the subprocess.
+`unit/` for the readers and the CLI helpers, `integration/` for the CLI driven over a real tree, `e2e/` for the installed console script run the way a workflow step runs it, all three under `lib/python/test_assert_no_comments/`. Unit and integration each gate on full branch coverage on their own rather than on the two together. `e2e-tests` carries no coverage gate and cannot, since it runs the command in another process, so a line reachable only through the console script is reached by `run_cli`, the in-process fixture in the root `conftest.py`, and asserted again through the subprocess.
 
 #### Test first
 
