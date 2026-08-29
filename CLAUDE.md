@@ -11,7 +11,7 @@
     - [Push once and let the run finish](#push-once-and-let-the-run-finish)
     - [Straight to main](#straight-to-main)
   - [Docstrings](#docstrings)
-    - [The package is not run against itself](#the-package-is-not-run-against-itself)
+    - [The package is run against itself](#the-package-is-run-against-itself)
     - [Why the tool refuses prose is in the README](#why-the-tool-refuses-prose-is-in-the-readme)
   - [Issues](#issues)
     - [An issue states one solution](#an-issue-states-one-solution)
@@ -103,23 +103,31 @@ there is and the tests land in the same commit as the code they cover.
 
 ### Docstrings
 
-#### The package is not run against itself
+#### The package is run against itself
 
-None of the fourteen jobs in `release.yml` is `assert-no-comments`, and
+`release.yml` has an `assert-no-comments` job, listed in `release`'s
+`needs`, and it reads `${{ github.workspace }}` through `./` — the
+composite action as this commit defines it — so the tool this repository
+publishes reads the repository that publishes it. `e93f45b` added the
+job and `2b2a959` pointed it at the action. That is the half of #3 that
+has landed.
+
+The job is red, on 363 findings, and has been since it was added.
 `src/assert_no_comments/` and `test/` carry a docstring on every module,
-class and function — exactly what the tool this repository ships reports
-as a finding. `pylint-src` and `pylint-test` gate on `--fail-on=C,R,W`
-and the three `missing-*-docstring` checks are C, so the prose the tool
-forbids is prose pylint requires.
+class and function, which is exactly what the tool reports, and
+`pylint-src` and `pylint-test` still gate on `--fail-on=C,R,W` with the
+three `missing-*-docstring` checks left on, so the prose the tool
+forbids is prose pylint requires. Both rules are in force at once, no
+push has been green since `e93f45b`, and `release` has been skipped for
+want of its `needs` — nothing has published from either commit.
 
-That conflict has a resolution, which is why #3 and #6 are open. The
-sibling `assert-python-definition-is-used` passes
-`--disable=missing-*-docstring` to pylint on the command line, which is
-neither a configuration file nor an inline directive, and gates its own
-tree on `assert-no-comments`. Until #3 is answered, treat the docstrings
-here as a standing question rather than a settled rule, and treat the
-rule the tool enforces as a repository's rule rather than a universal
-one.
+The rest of #3 is one commit: the three `--disable=missing-*-docstring`
+flags onto both pylint steps, on the command line the way the sibling
+`assert-python-definition-is-used` already passes them, and every
+docstring in `src/` and `test/` deleted with them. Until that commit lands, a new module, class or test still
+carries its docstring, because `pylint-test` has not changed yet; a red
+`assert-no-comments` is the known state of the tree rather than
+something a push introduced, so read a run for what is red beside it.
 
 #### Why the tool refuses prose is in the README
 
@@ -255,7 +263,7 @@ holding it.
 
 #### One assert per pytest
 
-Every test asserts once. `one-assert-per-pytest` is a job in
+Every test asserts once. `assert-one-assert-per-pytest` is a job in
 `release.yml`, so a second assert fails the push rather than being
 noticed in review. A test name is a sentence saying what is true,
 `test_a_hash_inside_a_string_is_not_reported`, and carries the docstring
@@ -293,24 +301,26 @@ carries the docstrings the tool reports.
 
 Do not run tests, linters or builds locally to verify a change — write
 the code and the tests, commit, push to `main`, and read the run with
-`gh run list`, `gh run watch` and `gh run view --log-failed`. Fourteen
-jobs gate a release, and between them they want Python, Node, four
-tree-sitter grammars and eight tools this machine does not otherwise
-carry; CI installs all of it per job and checks every gate at once.
-Reading the code locally is still right and cheap: `grep` and file reads
-are how the useful findings surface.
+`gh run list`, `gh run watch` and `gh run view --log-failed`. Fifteen
+jobs gate a release, `release` itself being the sixteenth, and between
+them they want Python, Node, four tree-sitter grammars and eight tools
+this machine does not otherwise carry; CI installs all of it per job and
+checks every gate at once. Reading the code locally is still right and
+cheap: `grep` and file reads are how the useful findings surface.
 
 #### Configuration goes on the command line
 
 There is no `.pylintrc`, no `mypy.ini`, no `.yamllint` and no inline
-`pylint: disable` anywhere, and there cannot be: `no-linter-configs` and
-`no-inline-directives` fail the run over either. Every option a tool
+`pylint: disable` anywhere, and there cannot be:
+`assert-no-linter-config-files` and `assert-no-inline-directives` fail
+the run over either. Every option a tool
 takes is written into the step that runs it — the yamllint rules arrive
 as `--config-data`, `pylint` gets `--fail-on=C,R,W --fail-under=10.0`,
 `mypy` gets `--strict` over `src/`. A rule that cannot be turned off is
 the point: the cost of it lands as a decision made somewhere visible,
-which is what [the package is not run against
-itself](#the-package-is-not-run-against-itself) is.
+which is what the docstrings are: [the package is run against
+itself](#the-package-is-run-against-itself) and the flags that answer
+for that go on the pylint steps.
 
 #### Finding the run
 
