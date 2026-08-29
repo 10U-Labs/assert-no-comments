@@ -22,5 +22,5 @@ on:
     branches:
       - main
     paths:
-      - "**/*.md"
+      - "**.md"
       - ".github/workflows/documentation.yml"
