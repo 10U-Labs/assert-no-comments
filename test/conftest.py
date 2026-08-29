@@ -8,7 +8,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 import pytest
-from test_sample import read_sample
+from test_read_sample import read_sample
 
 from assert_no_comments.cli import main
 

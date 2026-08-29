@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 import pytest
-from test_project import (
+from test_trees import (
     CLEAN_PROJECT,
     COMPONENT,
     EXCLUDE_VENDORED,

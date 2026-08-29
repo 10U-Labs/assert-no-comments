@@ -3,7 +3,7 @@ from __future__ import annotations
 from pathlib import Path
 
 import pytest
-from test_sample import read_sample
+from test_read_sample import read_sample
 
 from assert_no_comments.scanner import (
     HCL,
