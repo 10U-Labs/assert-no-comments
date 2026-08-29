@@ -1,9 +1,9 @@
 from __future__ import annotations
 
 from pathlib import Path
-from test_assert_no_comments.support import read_sample
 
 import pytest
+from test_assert_no_comments.support import read_sample
 
 from assert_no_comments.scanner import (
     HCL,

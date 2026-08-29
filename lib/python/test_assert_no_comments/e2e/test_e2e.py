@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
+import pytest
 from test_assert_no_comments.support import (
     CLEAN_PROJECT,
     COMPONENT,
@@ -9,9 +12,6 @@ from test_assert_no_comments.support import (
     SOURCE,
     WORKFLOW,
 )
-from typing import TYPE_CHECKING
-
-import pytest
 
 if TYPE_CHECKING:
     from collections.abc import Callable

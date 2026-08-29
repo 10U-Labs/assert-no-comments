@@ -8,9 +8,9 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 import pytest
+from test_assert_no_comments.support import read_sample
 
 from assert_no_comments.cli import main
-from test_assert_no_comments.support import read_sample
 
 if TYPE_CHECKING:
     from collections.abc import Callable

@@ -4,6 +4,10 @@ import argparse
 import runpy
 import sys
 from pathlib import Path
+from typing import TYPE_CHECKING
+from unittest.mock import patch
+
+import pytest
 from test_assert_no_comments.support import (
     CLEAN_PROJECT,
     COMPONENT,
@@ -16,10 +20,6 @@ from test_assert_no_comments.support import (
     WORKFLOW,
     read_sample,
 )
-from typing import TYPE_CHECKING
-from unittest.mock import patch
-
-import pytest
 
 from assert_no_comments.cli import (
     EXIT_ERROR,

@@ -41,7 +41,6 @@ eggs/
 env.bak/
 env/
 htmlcov/
-lib/
 lib64/
 nosetests.xml
 parts/
