@@ -106,7 +106,7 @@ Do not run tests, linters or builds locally to verify a change — write the cod
 
 #### Configuration goes on the command line
 
-There is no `.pylintrc`, no `mypy.ini`, no `.yamllint` and no inline `pylint: disable` anywhere, and there cannot be: `assert-no-linter-config-files` and `assert-no-inline-directives` fail the run over either. Every option a tool takes is written into the step that runs it.
+Every setting a linter takes is typed into the workflow step that runs it, and no linter here has a configuration file: no `.pylintrc`, no `mypy.ini`, no `.yamllint`, and none for `markdownlint` or `jscpd` either. `assert-no-linter-config-files` and `assert-no-inline-directives` fail the run over a config file or an inline `disable` comment for the first three only, so the last two rest on this rule alone.
 
 #### Finding the run
 
