@@ -103,8 +103,6 @@ there is and the tests land in the same commit as the code they cover.
 
 ### Docstrings
 
-Longer: [this-package-is-not-run-against-itself](.claude/memories/this-package-is-not-run-against-itself.md).
-
 #### The package is not run against itself
 
 None of the fourteen jobs in `release.yml` is `assert-no-comments`, and
@@ -114,14 +112,14 @@ as a finding. `pylint-src` and `pylint-test` gate on `--fail-on=C,R,W`
 and the three `missing-*-docstring` checks are C, so the prose the tool
 forbids is prose pylint requires.
 
-That conflict has a resolution, and the note under `.claude/memories/`
-says it does not, which is why #3 and #6 are open. The sibling
-`assert-python-definition-is-used` passes `--disable=missing-*-docstring`
-to pylint on the command line, which is neither a configuration file nor
-an inline directive, and gates its own tree on `assert-no-comments`.
-Until #3 is answered, treat the docstrings here as a standing question
-rather than a settled rule, and treat the rule the tool enforces as a
-repository's rule rather than a universal one.
+That conflict has a resolution, which is why #3 and #6 are open. The
+sibling `assert-python-definition-is-used` passes
+`--disable=missing-*-docstring` to pylint on the command line, which is
+neither a configuration file nor an inline directive, and gates its own
+tree on `assert-no-comments`. Until #3 is answered, treat the docstrings
+here as a standing question rather than a settled rule, and treat the
+rule the tool enforces as a repository's rule rather than a universal
+one.
 
 #### Why the tool refuses prose is in the README
 
