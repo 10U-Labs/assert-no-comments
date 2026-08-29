@@ -68,7 +68,7 @@ jobs:
         run: >-
           assert-one-assert-per-pytest
           --verbose
-          ${{ github.workspace }}/lib/python/test_assert_no_comments
+          ${{ github.workspace }}/test
   assert-python-definition-is-used:
     runs-on: ubuntu-latest
     steps:
@@ -85,6 +85,7 @@ jobs:
           assert-python-definition-is-used
           src
           --search-in src
+          --search-in test
           --search-in lib/python
           --verbose
   e2e-tests:
@@ -101,8 +102,7 @@ jobs:
       - name: E2E tests
         run: >-
           PYTHONPATH=lib/python
-          python3 -m pytest lib/python/test_assert_no_comments/e2e/
-          --verbose --pythonwarnings=error
+          python3 -m pytest test/e2e/ --verbose --pythonwarnings=error
   integration-tests:
     runs-on: ubuntu-latest
     steps:
@@ -116,8 +116,7 @@ jobs:
         run: pip install pytest pytest-cov -e .
       - name: Integration tests
         run: |
-          PYTHONPATH=lib/python python3 -m pytest \
-            lib/python/test_assert_no_comments/integration/ \
+          PYTHONPATH=lib/python python3 -m pytest test/integration/ \
             --verbose --pythonwarnings=error \
             --cov=assert_no_comments \
             --cov-branch \
@@ -148,7 +147,9 @@ jobs:
       - name: Install dependencies
         run: npm install -g jscpd
       - name: jscpd (test)
-        run: jscpd --pattern "**/*.py" --threshold 0 --reporters console lib/python/
+        run: >-
+          jscpd --pattern "**/*.py" --threshold 0 --reporters console
+          test/ lib/python/
   mypy-src:
     runs-on: ubuntu-latest
     steps:
@@ -176,7 +177,7 @@ jobs:
       - name: mypy (test)
         run: >-
           MYPYPATH=lib/python
-          python3 -m mypy --explicit-package-bases lib/python/
+          python3 -m mypy --explicit-package-bases test/ lib/python/
   pylint-src:
     runs-on: ubuntu-latest
     steps:
@@ -209,7 +210,8 @@ jobs:
         run: pip install pylint pytest -e .
       - name: pylint (test)
         run: >-
-          PYTHONPATH=lib/python python3 -m pylint --recursive=y lib/python/
+          PYTHONPATH=lib/python
+          python3 -m pylint --recursive=y test/ lib/python/
           --disable=missing-class-docstring
           --disable=missing-function-docstring
           --disable=missing-module-docstring
@@ -282,8 +284,7 @@ jobs:
         run: pip install pytest pytest-cov -e .
       - name: Unit tests
         run: |
-          PYTHONPATH=lib/python python3 -m pytest \
-            lib/python/test_assert_no_comments/unit/ \
+          PYTHONPATH=lib/python python3 -m pytest test/unit/ \
             --verbose --pythonwarnings=error \
             --cov=assert_no_comments \
             --cov-branch \
@@ -319,6 +320,7 @@ on:
       - ".github/workflows/documentation.yml"
       - ".github/workflows/release.yml"
       - "action.yml"
-      - "lib/**"
       - "pyproject.toml"
+      - "lib/**"
       - "src/**"
+      - "test/**"
