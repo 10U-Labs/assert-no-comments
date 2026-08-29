@@ -124,10 +124,11 @@ want of its `needs` — nothing has published from either commit.
 The rest of #3 is one commit: the three `--disable=missing-*-docstring`
 flags onto both pylint steps, on the command line the way the sibling
 `assert-python-definition-is-used` already passes them, and every
-docstring in `src/` and `test/` deleted with them. Until that commit lands, a new module, class or test still
-carries its docstring, because `pylint-test` has not changed yet; a red
-`assert-no-comments` is the known state of the tree rather than
-something a push introduced, so read a run for what is red beside it.
+docstring in `src/` and `test/` deleted with them. Until that commit
+lands, a new module, class or test still carries its docstring, because
+`pylint-test` has not changed yet; a red `assert-no-comments` is the
+known state of the tree rather than something a push introduced, so read
+a run for what is red beside it.
 
 #### Why the tool refuses prose is in the README
 
