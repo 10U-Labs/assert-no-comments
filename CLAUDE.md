@@ -87,7 +87,7 @@ A reader in `src/assert_no_comments/scanner.py` is a parser for the language it 
 
 #### A conftest with no fixture in it stays
 
-`test/integration/conftest.py` and `test/e2e/conftest.py` hold a docstring and nothing else, and they stay. The file is what tells whoever writes the next fixture that this level exists to hold one; left to itself a session writes setup into the test file already open in front of it. They cannot be emptied to zero bytes, because `missing-module-docstring` is a C and `pylint-test` gates on C.
+`test/integration/conftest.py` and `test/e2e/conftest.py` are zero bytes, and they stay. The file is what tells whoever writes the next fixture that this level exists to hold one; left to itself a session writes setup into the test file already open in front of it. Zero bytes is what an empty file is here, in a conftest and in an `__init__.py` alike: a docstring, a `pass` or a blank line to stand in for content is content, and the file is empty or it is not. Nothing in CI fails when one of them is deleted, so the file is kept for the reader rather than for a gate.
 
 #### Cover every tier the change touches
 

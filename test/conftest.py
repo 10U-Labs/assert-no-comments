@@ -1,5 +1,3 @@
-"""Root pytest configuration and shared test utilities."""
-
 from __future__ import annotations
 
 import io
@@ -18,7 +16,6 @@ if TYPE_CHECKING:
 
 
 def pytest_configure(config: pytest.Config) -> None:
-    """Register custom pytest markers."""
     config.addinivalue_line("markers", "unit: unit tests")
     config.addinivalue_line("markers", "integration: integration tests")
     config.addinivalue_line("markers", "e2e: end-to-end tests")
@@ -26,12 +23,6 @@ def pytest_configure(config: pytest.Config) -> None:
 
 @pytest.fixture
 def run_cli() -> Callable[[list[str]], tuple[int, str, str]]:
-    """Run the CLI in process, so that coverage sees it.
-
-    Returns:
-        A function taking arguments and returning exit code, stdout, stderr.
-    """
-
     def runner(args: list[str]) -> tuple[int, str, str]:
         stdout = io.StringIO()
         stderr = io.StringIO()
@@ -48,12 +39,6 @@ def run_cli() -> Callable[[list[str]], tuple[int, str, str]]:
 
 @pytest.fixture
 def run_cli_subprocess() -> Callable[[list[str]], tuple[int, str, str]]:
-    """Run the CLI as a subprocess, the way a workflow step does.
-
-    Returns:
-        A function taking arguments and returning exit code, stdout, stderr.
-    """
-
     def runner(args: list[str]) -> tuple[int, str, str]:
         result = subprocess.run(
             [sys.executable, "-m", "assert_no_comments", *args],
@@ -68,13 +53,6 @@ def run_cli_subprocess() -> Callable[[list[str]], tuple[int, str, str]]:
 
 @pytest.fixture
 def write_tree(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Callable[[dict[str, str]], Path]:
-    """Build a source tree and enter it, because every path here is relative.
-
-    Returns:
-        A function taking a mapping of relative path to content, writing each
-        file, changing into the tree and returning its root.
-    """
-
     def builder(files: dict[str, str]) -> Path:
         for relative, content in files.items():
             path = tmp_path / relative
