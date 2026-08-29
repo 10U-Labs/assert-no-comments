@@ -10,8 +10,6 @@
     - [One issue, one commit](#one-issue-one-commit)
     - [Push once and let the run finish](#push-once-and-let-the-run-finish)
     - [Straight to main](#straight-to-main)
-  - [Docstrings](#docstrings)
-    - [Write the docstring, and expect the job to be red](#write-the-docstring-and-expect-the-job-to-be-red)
   - [Issues](#issues)
     - [An issue states one solution](#an-issue-states-one-solution)
     - [The seven sections](#the-seven-sections)
@@ -62,12 +60,6 @@ Both workflows cancel the run in progress when a second push lands on the same r
 #### Straight to main
 
 Work goes straight to `main` as direct commits. Do not create a feature branch, do not open a pull request, and do not structure advice around a review cycle. CI is the only review there is, and the tests land in the same commit as the code they cover.
-
-### Docstrings
-
-#### Write the docstring, and expect the job to be red
-
-`release.yml` runs this package over its own tree and that job is red, because `pylint-src` and `pylint-test` gate on `--fail-on=C,R,W` with the `missing-*-docstring` checks on: the prose the tool forbids is the prose pylint requires. Write the docstring — pylint is the gate that is actually enforced — and read a red `assert-no-comments` as the standing state of the tree rather than something your push introduced. Which of the two rules wins is the open question in #3, and it is not answered in passing by a commit about something else.
 
 ### Issues
 
