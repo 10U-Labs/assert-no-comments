@@ -24,7 +24,6 @@
     - [Test first](#test-first)
   - [Verification](#verification)
     - [CI is the source of truth](#ci-is-the-source-of-truth)
-    - [Configuration goes on the command line](#configuration-goes-on-the-command-line)
     - [Finding the run](#finding-the-run)
     - [Path filters are not shell globs](#path-filters-are-not-shell-globs)
 - [Notes](#notes)
@@ -103,10 +102,6 @@ The test is written first, then the code that makes it pass. Test-first is autho
 #### CI is the source of truth
 
 Do not run tests, linters or builds locally to verify a change — write the code and the tests, commit, push to `main`, and read the run with `gh run list`, `gh run watch` and `gh run view --log-failed`. The jobs between them want Python, Node, four tree-sitter grammars and eight tools this machine does not otherwise carry, and CI checks every gate at once. Reading the code locally is still right and cheap: `grep` and file reads are how the useful findings surface. A green push publishes to PyPI and force-moves `latest` by itself, so there is no version to hold back and a commit that should not be published is a commit that should not be pushed.
-
-#### Configuration goes on the command line
-
-Every setting a linter takes is typed into the workflow step that runs it, and no linter here has a configuration file: no `.pylintrc`, no `mypy.ini`, no `.yamllint`, and none for `markdownlint` or `jscpd` either. `assert-no-linter-config-files` and `assert-no-inline-directives` fail the run over a config file or an inline `disable` comment for the first three only, so the last two rest on this rule alone.
 
 #### Finding the run
 

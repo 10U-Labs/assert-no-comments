@@ -42,11 +42,3 @@ Repository = "https://github.com/10U-Labs/assert-no-comments"
 
 [tool.setuptools.packages.find]
 where = ["src"]
-
-[tool.pytest.ini_options]
-testpaths = ["test"]
-markers = [
-    "unit: Unit tests (fast, isolated)",
-    "integration: Integration tests (with real files)",
-    "e2e: End-to-end tests (behavioral)",
-]

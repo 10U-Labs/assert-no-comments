@@ -29,11 +29,13 @@ jobs:
       - name: Install dependencies
         run: pip install assert-no-inline-directives
       - name: assert-no-inline-directives
-        run: >-
-          assert-no-inline-directives
-          --tools pylint,mypy,yamllint
-          --verbose
-          ${{ github.workspace }}/**/*
+        run: |
+          TOOLS="clang-diagnostic,clang-format,clang-tidy,coverage"
+          TOOLS="$TOOLS,markdownlint,mypy,pylint,yamllint"
+          assert-no-inline-directives \
+            --tools "$TOOLS" \
+            --verbose \
+            ${{ github.workspace }}/**/*
   assert-no-linter-config-files:
     runs-on: ubuntu-latest
     steps:
@@ -48,7 +50,7 @@ jobs:
       - name: assert-no-linter-config-files
         run: >-
           assert-no-linter-config-files
-          --linters pylint,mypy,yamllint
+          --linters jscpd,markdownlint,mypy,pylint,pytest,yamllint
           --verbose
           ${{ github.workspace }}
   assert-one-assert-per-pytest:
