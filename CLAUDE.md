@@ -22,7 +22,6 @@
     - [A conftest with no fixture in it stays](#a-conftest-with-no-fixture-in-it-stays)
     - [Cover every tier the change touches](#cover-every-tier-the-change-touches)
     - [Test first](#test-first)
-    - [Trees under test go in samples](#trees-under-test-go-in-samples)
   - [Verification](#verification)
     - [CI is the source of truth](#ci-is-the-source-of-truth)
     - [Configuration goes on the command line](#configuration-goes-on-the-command-line)
@@ -99,10 +98,6 @@ A reader in `src/assert_no_comments/scanner.py` is a parser for the language it 
 #### Test first
 
 The test is written first, then the code that makes it pass. Test-first is authoring order — the red and the green observations belong to CI, since nothing runs locally.
-
-#### Trees under test go in samples
-
-`test/samples.py` holds the sample trees and all three tiers import from it. A tier that assembles its own tree inline is how two tiers come to disagree about what a clean project looks like.
 
 ### Verification
 
