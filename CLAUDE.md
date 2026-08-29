@@ -8,7 +8,7 @@
     - [A rejected push is fixed forward](#a-rejected-push-is-fixed-forward)
     - [One closing line per issue](#one-closing-line-per-issue)
     - [One issue, one commit](#one-issue-one-commit)
-    - [Push each change as it is finished, once](#push-each-change-as-it-is-finished-once)
+    - [Push once and let the run finish](#push-once-and-let-the-run-finish)
     - [Straight to main](#straight-to-main)
   - [Docstrings](#docstrings)
     - [Write the docstring, and expect the job to be red](#write-the-docstring-and-expect-the-job-to-be-red)
@@ -55,9 +55,9 @@ An issue is closed by the commit that fixes it, through a `Closes #N` line, one 
 
 One issue is solved by one commit and one push. An issue that cannot be done in one commit is two issues, and filing the second is the answer rather than spreading one issue across pushes. Two issues share a commit only where the fix for one is contained in the fix for the other.
 
-#### Push each change as it is finished, once
+#### Push once and let the run finish
 
-A finished change is pushed straight away rather than held back to travel with the next one — nothing is verified until it is on `main`. Once, though: both workflows cancel the run in progress when a second push lands on the same ref, and the tree is still verified by the later run but the cancelled commit loses its own release, because `release` never gets its `needs`.
+Both workflows cancel the run in progress when a second push lands on the same ref. The tree is still verified, by the later run, but the cancelled commit loses its own release, because `release` never gets its `needs`. Push once per issue and read that run.
 
 #### Straight to main
 
