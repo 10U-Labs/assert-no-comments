@@ -53,7 +53,6 @@ def _namespace(**overrides: bool) -> argparse.Namespace:
     )
 
 
-@pytest.mark.unit
 class TestCreateParser:
     def test_reads_one_tree(self) -> None:
         assert create_parser().parse_args(["src"]).trees == ["src"]
@@ -73,7 +72,6 @@ class TestCreateParser:
             create_parser().parse_args(["src", "--fail-fast", "--warn-only"])
 
 
-@pytest.mark.unit
 class TestParsePatterns:
     def test_nothing_given_is_no_patterns(self) -> None:
         assert parse_patterns(None) == []
@@ -91,7 +89,6 @@ class TestParsePatterns:
         assert parse_patterns("a/*,,") == ["a/*"]
 
 
-@pytest.mark.unit
 class TestShouldSkip:
     def test_a_path_pattern_matches(self) -> None:
         assert should_skip("src/vendor/leaflet.js", ["src/vendor/*"])
@@ -106,7 +103,6 @@ class TestShouldSkip:
         assert not should_skip("src/counting.py", [])
 
 
-@pytest.mark.unit
 class TestIsGlobPattern:
     def test_a_star_makes_it_a_pattern(self) -> None:
         assert _is_glob_pattern("src/*.py")
@@ -115,7 +111,6 @@ class TestIsGlobPattern:
         assert not _is_glob_pattern("src/counting.py")
 
 
-@pytest.mark.unit
 class TestWalkSourceFiles:
     def test_finds_a_python_file(self, tmp_path: Path) -> None:
         (tmp_path / "counting.py").write_text(sample("walk/finds_python_file"), encoding="utf-8")
@@ -138,7 +133,6 @@ class TestWalkSourceFiles:
         assert not _walk_source_files(str(tmp_path))
 
 
-@pytest.mark.unit
 class TestExpand:
     def test_a_file_names_itself(self, tmp_path: Path) -> None:
         source = tmp_path / "counting.py"
@@ -170,7 +164,6 @@ class TestExpand:
         assert _expand(str(tmp_path / "absent.py")) == ([], False)
 
 
-@pytest.mark.unit
 class TestCollect:
     def test_names_the_files_to_read(self, tmp_path: Path) -> None:
         (tmp_path / "counting.py").write_text(sample("collect/names_files_to"), encoding="utf-8")
@@ -194,7 +187,6 @@ class TestCollect:
         assert collect([str(notes)], []) == ([], [])
 
 
-@pytest.mark.unit
 class TestRead:
     def test_returns_the_content(self, tmp_path: Path) -> None:
         source = tmp_path / "counting.py"
@@ -217,7 +209,6 @@ class TestRead:
         assert result.had_error
 
 
-@pytest.mark.unit
 class TestReadComments:
     def test_collects_the_findings(self, tmp_path: Path) -> None:
         source = tmp_path / "counting.py"
@@ -259,7 +250,6 @@ class TestReadComments:
         assert f"Reading: {source}" in capsys.readouterr().out
 
 
-@pytest.mark.unit
 class TestOutputFindings:
     def test_prints_the_path_the_line_and_why(self, capsys: pytest.CaptureFixture[str]) -> None:
         output_findings([Finding("src/counting.py", 2)])
@@ -278,7 +268,6 @@ class TestOutputFindings:
         assert capsys.readouterr().out == ""
 
 
-@pytest.mark.unit
 class TestDetermineExitCode:
     def test_a_clean_run_succeeds(self) -> None:
         assert determine_exit_code(ScanResult()) == EXIT_SUCCESS
@@ -293,7 +282,6 @@ class TestDetermineExitCode:
         assert determine_exit_code(ScanResult(had_error=True), warn_only=True) == EXIT_SUCCESS
 
 
-@pytest.mark.unit
 class TestReport:
     def test_quiet_prints_nothing(self, capsys: pytest.CaptureFixture[str]) -> None:
         _report(ScanResult(findings=[Finding("a.py", 1)]), _namespace(quiet=True))
@@ -318,7 +306,6 @@ class TestReport:
         assert capsys.readouterr().out == "1\n"
 
 
-@pytest.mark.unit
 class TestMainModule:
     def test_calls_main(self) -> None:
         with patch("assert_no_comments.cli.main") as entry_point:
@@ -337,7 +324,6 @@ def _stopped_at(args: list[str]) -> object:
     return stopping.value.code
 
 
-@pytest.mark.unit
 @pytest.mark.usefixtures("tiny_tree")
 class TestMainChoosesTheExitCode:
     def test_a_tree_with_no_comment_in_it_succeeds(self) -> None:
@@ -356,7 +342,6 @@ class TestMainChoosesTheExitCode:
         assert _stopped_at([CLEAN, "absent"]) == EXIT_ERROR
 
 
-@pytest.mark.unit
 @pytest.mark.usefixtures("tiny_tree")
 class TestMainPrintsWhatItFound:
     def test_names_the_file_the_comment_sits_in(

@@ -16,12 +16,6 @@ if TYPE_CHECKING:
     from collections.abc import Callable
 
 
-def pytest_configure(config: pytest.Config) -> None:
-    config.addinivalue_line("markers", "unit: unit tests")
-    config.addinivalue_line("markers", "integration: integration tests")
-    config.addinivalue_line("markers", "e2e: end-to-end tests")
-
-
 @pytest.fixture
 def run_cli() -> Callable[[list[str]], tuple[int, str, str]]:
     def runner(args: list[str]) -> tuple[int, str, str]:

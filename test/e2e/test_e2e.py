@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-import pytest
 from test_trees import (
     CLEAN_PROJECT,
     COMPONENT,
@@ -21,7 +20,6 @@ if TYPE_CHECKING:
     WriteTree = Callable[[dict[str, str]], Path]
 
 
-@pytest.mark.e2e
 class TestTheCommandAsAStepRunsIt:
     def test_a_clean_tree_succeeds(
         self, write_tree: WriteTree, run_cli_subprocess: RunCli

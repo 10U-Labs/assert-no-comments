@@ -25,7 +25,6 @@ def sample(name: str) -> str:
     return read_sample(Path(__file__).parent, name)
 
 
-@pytest.mark.unit
 class TestPythonComments:
     def test_a_comment_on_a_line_of_its_own_is_reported(self) -> None:
         assert python_comments(sample("python/comment_on_line_own_reported")) == [1]
@@ -61,7 +60,6 @@ class TestPythonComments:
         assert python_comments(sample("python/string_first_statement_reported")) == []
 
 
-@pytest.mark.unit
 class TestYamlComments:
     def test_a_comment_is_reported(self) -> None:
         assert yaml_comments(sample("yaml/comment_reported")) == [3]
@@ -76,7 +74,6 @@ class TestYamlComments:
         assert yaml_comments("") == []
 
 
-@pytest.mark.unit
 class TestHclComments:
     def test_a_hash_comment_is_reported(self) -> None:
         assert hcl_comments(sample("hcl/hash_comment_reported")) == [1]
@@ -100,7 +97,6 @@ class TestHclComments:
         assert hcl_comments(sample("hcl/file_will_parse_reports")) == [1]
 
 
-@pytest.mark.unit
 class TestJavascriptComments:
     def test_a_comment_is_reported(self) -> None:
         assert javascript_comments(sample("javascript/comment_reported")) == [2]
@@ -145,7 +141,6 @@ class TestJavascriptComments:
         assert javascript_comments(sample("javascript/file_will_parse_reports")) == [2]
 
 
-@pytest.mark.unit
 class TestTypescriptComments:
     def test_a_comment_is_reported(self) -> None:
         assert typescript_comments(sample("typescript/comment_reported")) == [1]
@@ -157,7 +152,6 @@ class TestTypescriptComments:
         assert typescript_comments(sample("typescript/type_assertion_hide_comment_after")) == [2]
 
 
-@pytest.mark.unit
 class TestTsxComments:
     def test_a_comment_is_reported(self) -> None:
         assert tsx_comments(sample("tsx/comment_reported")) == [2]
@@ -169,7 +163,6 @@ class TestTsxComments:
         assert tsx_comments(sample("tsx/comment_braced_inside_element_reported")) == [3]
 
 
-@pytest.mark.unit
 class TestParsedComments:
     def test_a_grammar_named_directly_reads_its_comments(self) -> None:
         assert parsed_comments(sample("parsed/grammar_named_directly_reads_comments"), HCL) == [1]
@@ -178,7 +171,6 @@ class TestParsedComments:
         assert javascript_comments(sample("parsed/two_comments_on_one_line_reported_once")) == [1]
 
 
-@pytest.mark.unit
 class TestReaderFor:
     def test_a_python_file_gets_the_python_reader(self) -> None:
         assert reader_for("src/counting.py") is python_comments
@@ -223,7 +215,6 @@ class TestReaderFor:
         assert reader_for("notes.txt") is None
 
 
-@pytest.mark.unit
 class TestCommentsIn:
     def test_a_finding_names_the_file_and_the_line(self) -> None:
         found = comments_in("src/counting.py", sample("comments_in/finding_names"))
@@ -241,7 +232,6 @@ class TestCommentsIn:
             comments_in("etc/config.yml", sample("comments_in/yaml_file_will_parse_unreadable"))
 
 
-@pytest.mark.unit
 class TestFinding:
     def test_prints_as_path_and_line(self) -> None:
         assert str(Finding("src/counting.py", 2)) == "src/counting.py:2"

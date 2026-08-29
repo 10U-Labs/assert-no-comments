@@ -64,7 +64,6 @@ def _settings(**overrides: bool) -> argparse.Namespace:
     return create_parser().parse_args(["src", *[f"--{k}" for k, v in chosen.items() if v]])
 
 
-@pytest.mark.integration
 class TestPythonFilesOnDisk:
     def test_reports_a_comment(self, tmp_path: Path) -> None:
         assert _lines(tmp_path, "a.py", sample("python/reports_comment")) == [1]
@@ -101,7 +100,6 @@ class TestPythonFilesOnDisk:
             _lines(tmp_path, "a.py", sample("project/broken_python"))
 
 
-@pytest.mark.integration
 class TestYamlFilesOnDisk:
     def test_reports_a_comment(self, tmp_path: Path) -> None:
         assert _lines(tmp_path, "a.yml", sample("project/commented_workflow")) == [3]
@@ -120,7 +118,6 @@ class TestYamlFilesOnDisk:
             _lines(tmp_path, "a.yml", sample("yaml/file_will_parse_unreadable"))
 
 
-@pytest.mark.integration
 class TestOpenTofuFilesOnDisk:
     def test_reports_a_hash_comment(self, tmp_path: Path) -> None:
         assert _lines(tmp_path, "a.tf", sample("opentofu/reports_hash_comment")) == [1]
@@ -147,7 +144,6 @@ class TestOpenTofuFilesOnDisk:
         assert _lines(tmp_path, "a.tf", sample("opentofu/file_will_parse_reports")) == [1]
 
 
-@pytest.mark.integration
 class TestJavascriptFilesOnDisk:
     def test_reports_a_comment(self, tmp_path: Path) -> None:
         assert _lines(tmp_path, "a.js", sample("javascript/reports_comment")) == [2]
@@ -195,7 +191,6 @@ class TestJavascriptFilesOnDisk:
         assert _lines(tmp_path, "a.jsx", sample("javascript/leaves_markers_in_text_element")) == []
 
 
-@pytest.mark.integration
 class TestTypescriptFilesOnDisk:
     def test_reports_a_comment(self, tmp_path: Path) -> None:
         assert _lines(tmp_path, "a.ts", sample("typescript/reports_comment")) == [1]
@@ -216,7 +211,6 @@ class TestTypescriptFilesOnDisk:
         assert _lines(tmp_path, "a.ts", sample("typescript/type_assertion_hide_comment")) == [2]
 
 
-@pytest.mark.integration
 class TestTsxFilesOnDisk:
     def test_reports_every_form_a_comment_takes(self, tmp_path: Path) -> None:
         assert _lines(tmp_path, "App.tsx", sample("project/commented_tsx")) == [3, 5, 8]
@@ -228,7 +222,6 @@ class TestTsxFilesOnDisk:
         assert _lines(tmp_path, "App.tsx", sample("tsx/element_hide_comment_after")) == [2]
 
 
-@pytest.mark.integration
 class TestFilesNoReaderSpeaks:
     def test_a_markdown_file_reports_nothing(self, tmp_path: Path) -> None:
         assert _lines(tmp_path, "notes.md", sample("no_reader/markdown_file_reports_nothing")) == []
@@ -240,7 +233,6 @@ class TestFilesNoReaderSpeaks:
         assert _lines(tmp_path, "Makefile", sample("no_reader/file_with_no_suffix_reports")) == []
 
 
-@pytest.mark.integration
 class TestParsedComments:
     def test_reads_a_grammar_named_directly(self, tmp_path: Path) -> None:
         (tmp_path / "a.tf").write_text(sample("parsed/reads_grammar_named"), encoding="utf-8")
@@ -251,7 +243,6 @@ class TestParsedComments:
         assert _lines(tmp_path, "b.js", sample("parsed/reports_one_line_once")) == [1]
 
 
-@pytest.mark.integration
 class TestCollectingFiles:
     def test_a_directory_names_what_is_under_it(self, write_tree: WriteTree) -> None:
         write_tree(CLEAN_PROJECT)
@@ -330,7 +321,6 @@ class TestCollectingFiles:
         assert parse_patterns("a/*,,") == ["a/*"]
 
 
-@pytest.mark.integration
 class TestReadingFiles:
     def test_reads_the_content(self, write_tree: WriteTree) -> None:
         write_tree(PROJECT)
@@ -389,7 +379,6 @@ class TestReadingFiles:
         assert f"Reading: {SOURCE}" in capsys.readouterr().out
 
 
-@pytest.mark.integration
 class TestReportingFindings:
     def test_prints_the_path_the_line_and_why(self, capsys: pytest.CaptureFixture[str]) -> None:
         output_findings([Finding(SOURCE, 2)])
@@ -432,7 +421,6 @@ class TestReportingFindings:
         assert capsys.readouterr().out == "1\n"
 
 
-@pytest.mark.integration
 class TestTheCommandOverATree:
     def test_a_clean_tree_succeeds(self, write_tree: WriteTree, run_cli: RunCli) -> None:
         write_tree(CLEAN_PROJECT)
@@ -521,7 +509,6 @@ class TestTheCommandOverATree:
         assert f"::error file={SOURCE}," in run_cli([*FULL_RUN, "--annotate"])[1]
 
 
-@pytest.mark.integration
 class TestTheCommandWhenATreeWillNotRead:
     def test_a_missing_tree_is_an_error(self, write_tree: WriteTree, run_cli: RunCli) -> None:
         write_tree(CLEAN_PROJECT)
@@ -568,7 +555,6 @@ class TestTheCommandWhenATreeWillNotRead:
         assert create_parser().parse_args(["src", "test"]).trees == ["src", "test"]
 
 
-@pytest.mark.integration
 class TestRunningAsAModule:
     def test_calls_main(self) -> None:
         with patch("assert_no_comments.cli.main") as entry_point:
