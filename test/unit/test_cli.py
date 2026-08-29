@@ -7,7 +7,7 @@ from pathlib import Path
 from unittest.mock import patch
 
 import pytest
-from test_assert_no_comments.support import read_sample
+from test_support.samples import read_sample
 
 from assert_no_comments.cli import (
     EXIT_ERROR,
