@@ -1,5 +1,40 @@
 # Working in assert-no-comments
 
+## Table of Contents
+
+- [Overview](#overview)
+- [Conventions](#conventions)
+  - [Commits](#commits)
+    - [A rejected push is fixed forward](#a-rejected-push-is-fixed-forward)
+    - [One closing line per issue](#one-closing-line-per-issue)
+    - [One issue, one commit](#one-issue-one-commit)
+    - [Push each change as it is finished, once](#push-each-change-as-it-is-finished-once)
+    - [Straight to main](#straight-to-main)
+  - [Docstrings](#docstrings)
+    - [Write the docstring, and expect the job to be red](#write-the-docstring-and-expect-the-job-to-be-red)
+  - [Issues](#issues)
+    - [An issue states one solution](#an-issue-states-one-solution)
+    - [The seven sections](#the-seven-sections)
+  - [Markdown](#markdown)
+    - [A paragraph is one line](#a-paragraph-is-one-line)
+    - [The table of contents stays](#the-table-of-contents-stays)
+  - [Readers](#readers)
+    - [Every language is read by its own parser](#every-language-is-read-by-its-own-parser)
+  - [Tests](#tests)
+    - [A conftest with no fixture in it stays](#a-conftest-with-no-fixture-in-it-stays)
+    - [Cover every tier the change touches](#cover-every-tier-the-change-touches)
+    - [One assert per pytest](#one-assert-per-pytest)
+    - [Test first](#test-first)
+    - [Trees under test go in samples](#trees-under-test-go-in-samples)
+  - [Verification](#verification)
+    - [CI is the source of truth](#ci-is-the-source-of-truth)
+    - [Configuration goes on the command line](#configuration-goes-on-the-command-line)
+    - [Finding the run](#finding-the-run)
+    - [Keys in a YAML file are alphabetical](#keys-in-a-yaml-file-are-alphabetical)
+    - [Path filters are not shell globs](#path-filters-are-not-shell-globs)
+- [Notes](#notes)
+  - [Where a new convention goes](#where-a-new-convention-goes)
+
 ## Overview
 
 The standing conventions for working in this repository. A rule is here only if working from the tree alone would get it wrong: whatever `release.yml`, `README.md`, the code or `git log` already answers is not repeated here, because a second copy goes stale with nothing to catch it.
@@ -49,6 +84,10 @@ Seven sections in a fixed order: "Problem", "Why Unit Tests Did Not Catch It?", 
 #### A paragraph is one line
 
 Nothing here holds a line to a column count, so a paragraph is written as one line and the reader's editor wraps it — in markdown files and in commit message bodies alike. Hard wrapping is what makes a one-word edit arrive as a rewritten paragraph, because the words after it move onto the lines below and the diff marks all of them.
+
+#### The table of contents stays
+
+The list at the top of this file is the exception to the rule above it: it is navigation for a reader of this file rather than a claim about anything else in the tree, and it is rewritten in the same edit as the headings it lists, so it cannot drift from them the way a copied fact drifts from its source. A session that has just read the rule about second copies will reach for it first. Leave it, and update it.
 
 ### Readers
 
