@@ -4,7 +4,7 @@ import argparse
 import runpy
 import sys
 from pathlib import Path
-from test.samples import (
+from test.conftest import (
     BROKEN_PYTHON,
     CLEAN_PROJECT,
     CLEAN_TSX,

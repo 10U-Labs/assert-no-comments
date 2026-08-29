@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from test.samples import (
+from test.conftest import (
     BROKEN_PYTHON,
     CLEAN_PROJECT,
     COMMENTED_TSX,
