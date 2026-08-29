@@ -3,7 +3,8 @@ from __future__ import annotations
 import argparse
 import importlib
 import sys
-from typing import TYPE_CHECKING
+from pathlib import Path
+from test.conftest import read_sample
 from unittest.mock import patch
 
 import pytest
@@ -30,12 +31,13 @@ from assert_no_comments.cli import (
 )
 from assert_no_comments.scanner import Finding
 
-if TYPE_CHECKING:
-    from pathlib import Path
-
 TREE = "kept"
 CLEAN = "kept/clean.py"
 SECOND = "kept/second.py"
+
+
+def sample(name: str) -> str:
+    return read_sample(Path(__file__).parent, name)
 
 
 def import_main() -> None:
@@ -116,23 +118,23 @@ class TestIsGlobPattern:
 @pytest.mark.unit
 class TestWalkSourceFiles:
     def test_finds_a_python_file(self, tmp_path: Path) -> None:
-        (tmp_path / "counting.py").write_text("x = 1\n", encoding="utf-8")
+        (tmp_path / "counting.py").write_text(sample("walk/finds_python_file"), encoding="utf-8")
         assert _walk_source_files(str(tmp_path)) == [str(tmp_path / "counting.py")]
 
     def test_leaves_a_markdown_file_alone(self, tmp_path: Path) -> None:
-        (tmp_path / "notes.md").write_text("A heading\n", encoding="utf-8")
+        (tmp_path / "notes.md").write_text(sample("walk/leaves_markdown_file"), encoding="utf-8")
         assert not _walk_source_files(str(tmp_path))
 
     def test_reads_a_hidden_directory(self, tmp_path: Path) -> None:
         workflows = tmp_path / ".github" / "workflows"
         workflows.mkdir(parents=True)
-        (workflows / "release.yml").write_text("---\na: 1\n", encoding="utf-8")
+        (workflows / "release.yml").write_text(sample("walk/reads_hidden"), encoding="utf-8")
         assert _walk_source_files(str(tmp_path)) == [str(workflows / "release.yml")]
 
     def test_leaves_a_cache_directory_alone(self, tmp_path: Path) -> None:
         cache = tmp_path / "__pycache__"
         cache.mkdir()
-        (cache / "counting.py").write_text("x = 1\n", encoding="utf-8")
+        (cache / "counting.py").write_text(sample("walk/leaves_cache_directory"), encoding="utf-8")
         assert not _walk_source_files(str(tmp_path))
 
 
@@ -140,21 +142,21 @@ class TestWalkSourceFiles:
 class TestExpand:
     def test_a_file_names_itself(self, tmp_path: Path) -> None:
         source = tmp_path / "counting.py"
-        source.write_text("x = 1\n", encoding="utf-8")
+        source.write_text(sample("expand/file_names_itself"), encoding="utf-8")
         assert _expand(str(source)) == ([str(source)], True)
 
     def test_a_directory_names_what_is_under_it(self, tmp_path: Path) -> None:
-        (tmp_path / "counting.py").write_text("x = 1\n", encoding="utf-8")
+        (tmp_path / "counting.py").write_text(sample("expand/directory_names"), encoding="utf-8")
         assert _expand(str(tmp_path)) == ([str(tmp_path / "counting.py")], True)
 
     def test_a_glob_names_the_files_it_matches(self, tmp_path: Path) -> None:
-        (tmp_path / "counting.py").write_text("x = 1\n", encoding="utf-8")
+        (tmp_path / "counting.py").write_text(sample("expand/glob_names_files"), encoding="utf-8")
         assert _expand(str(tmp_path / "*.py")) == ([str(tmp_path / "counting.py")], True)
 
     def test_a_glob_matching_a_directory_names_what_is_under_it(self, tmp_path: Path) -> None:
         package = tmp_path / "pkg"
         package.mkdir()
-        (package / "counting.py").write_text("x = 1\n", encoding="utf-8")
+        (package / "counting.py").write_text(sample("expand/glob_matching"), encoding="utf-8")
         assert _expand(str(tmp_path / "p*")) == ([str(package / "counting.py")], True)
 
     def test_a_glob_matching_a_dangling_link_names_nothing(self, tmp_path: Path) -> None:
@@ -171,24 +173,24 @@ class TestExpand:
 @pytest.mark.unit
 class TestCollect:
     def test_names_the_files_to_read(self, tmp_path: Path) -> None:
-        (tmp_path / "counting.py").write_text("x = 1\n", encoding="utf-8")
+        (tmp_path / "counting.py").write_text(sample("collect/names_files_to"), encoding="utf-8")
         assert collect([str(tmp_path)], []) == ([str(tmp_path / "counting.py")], [])
 
     def test_names_the_paths_that_matched_nothing(self, tmp_path: Path) -> None:
         assert collect([str(tmp_path / "absent")], [])[1] == [str(tmp_path / "absent")]
 
     def test_an_excluded_file_is_left_out(self, tmp_path: Path) -> None:
-        (tmp_path / "counting.py").write_text("x = 1\n", encoding="utf-8")
+        (tmp_path / "counting.py").write_text(sample("collect/excluded_file"), encoding="utf-8")
         assert collect([str(tmp_path)], ["counting.py"]) == ([], [])
 
     def test_a_file_named_twice_is_read_once(self, tmp_path: Path) -> None:
         source = tmp_path / "counting.py"
-        source.write_text("x = 1\n", encoding="utf-8")
+        source.write_text(sample("collect/file_named_twice_read_once"), encoding="utf-8")
         assert collect([str(tmp_path), str(source)], []) == ([str(source)], [])
 
     def test_a_named_file_no_reader_speaks_is_left_out(self, tmp_path: Path) -> None:
         notes = tmp_path / "notes.md"
-        notes.write_text("A heading\n", encoding="utf-8")
+        notes.write_text(sample("collect/named_file_no_reader_speaks_left_out"), encoding="utf-8")
         assert collect([str(notes)], []) == ([], [])
 
 
@@ -196,7 +198,7 @@ class TestCollect:
 class TestRead:
     def test_returns_the_content(self, tmp_path: Path) -> None:
         source = tmp_path / "counting.py"
-        source.write_text("x = 1\n", encoding="utf-8")
+        source.write_text(sample("read/returns_content"), encoding="utf-8")
         assert _read(str(source), ScanResult()) == "x = 1\n"
 
     def test_a_missing_file_returns_nothing(self, tmp_path: Path) -> None:
@@ -219,12 +221,12 @@ class TestRead:
 class TestReadComments:
     def test_collects_the_findings(self, tmp_path: Path) -> None:
         source = tmp_path / "counting.py"
-        source.write_text("x = 1\n# why\n", encoding="utf-8")
+        source.write_text(sample("read_comments/collects_findings"), encoding="utf-8")
         assert read_comments([str(source)], ScanResult()) == [Finding(str(source), 2)]
 
     def test_counts_the_files_it_read(self, tmp_path: Path) -> None:
         source = tmp_path / "counting.py"
-        source.write_text("x = 1\n", encoding="utf-8")
+        source.write_text(sample("read_comments/counts_files_read"), encoding="utf-8")
         result = ScanResult()
         read_comments([str(source)], result)
         assert result.files_scanned == 1
@@ -236,14 +238,14 @@ class TestReadComments:
 
     def test_a_file_that_will_not_parse_records_an_error(self, tmp_path: Path) -> None:
         source = tmp_path / "counting.py"
-        source.write_text("def f(\n", encoding="utf-8")
+        source.write_text(sample("read_comments/file_will_parse_records_error"), encoding="utf-8")
         result = ScanResult()
         read_comments([str(source)], result)
         assert result.had_error
 
     def test_a_file_that_will_not_parse_is_not_counted(self, tmp_path: Path) -> None:
         source = tmp_path / "counting.py"
-        source.write_text("def f(\n", encoding="utf-8")
+        source.write_text(sample("read_comments/file_will_parse_counted"), encoding="utf-8")
         result = ScanResult()
         read_comments([str(source)], result)
         assert result.files_scanned == 0
@@ -252,7 +254,7 @@ class TestReadComments:
         self, tmp_path: Path, capsys: pytest.CaptureFixture[str]
     ) -> None:
         source = tmp_path / "counting.py"
-        source.write_text("x = 1\n", encoding="utf-8")
+        source.write_text(sample("read_comments/verbose_names_each_file"), encoding="utf-8")
         read_comments([str(source)], ScanResult(), verbose=True)
         assert f"Reading: {source}" in capsys.readouterr().out
 

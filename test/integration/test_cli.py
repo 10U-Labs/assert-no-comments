@@ -14,6 +14,7 @@ from test.conftest import (
     SOURCE,
     VENDORED,
     WORKFLOW,
+    read_sample,
 )
 from typing import TYPE_CHECKING
 from unittest.mock import patch
@@ -44,8 +45,11 @@ if TYPE_CHECKING:
     from collections.abc import Callable
 
     RunCli = Callable[[list[str]], tuple[int, str, str]]
-    Sample = Callable[[str], str]
     WriteTree = Callable[[dict[str, str]], Path]
+
+
+def sample(name: str) -> str:
+    return read_sample(Path(__file__).parent, name)
 
 
 def _lines(tmp_path: Path, name: str, content: str) -> list[int]:
@@ -63,95 +67,93 @@ def _settings(**overrides: bool) -> argparse.Namespace:
 @pytest.mark.integration
 class TestPythonFilesOnDisk:
     def test_reports_a_comment(self, tmp_path: Path) -> None:
-        assert _lines(tmp_path, "a.py", "# why\nx = 1\n") == [1]
+        assert _lines(tmp_path, "a.py", sample("python/reports_comment")) == [1]
 
-    def test_reports_a_trailing_comment(self, tmp_path: Path, sample: Sample) -> None:
-        assert _lines(tmp_path, "a.py", sample("commented_python")) == [2]
+    def test_reports_a_trailing_comment(self, tmp_path: Path) -> None:
+        assert _lines(tmp_path, "a.py", sample("project/commented_python")) == [2]
 
-    def test_reports_a_docstring(self, tmp_path: Path, sample: Sample) -> None:
-        assert _lines(tmp_path, "a.py", sample("documented_python")) == [2]
+    def test_reports_a_docstring(self, tmp_path: Path) -> None:
+        assert _lines(tmp_path, "a.py", sample("python/reports_docstring")) == [2]
 
     def test_reports_a_module_docstring(self, tmp_path: Path) -> None:
-        assert _lines(tmp_path, "a.py", '"""Why."""\nx = 1\n') == [1]
+        assert _lines(tmp_path, "a.py", sample("python/reports_module_docstring")) == [1]
 
     def test_reports_a_class_docstring(self, tmp_path: Path) -> None:
-        assert _lines(tmp_path, "a.py", 'class C:\n    """Why."""\n\n    x = 1\n') == [2]
+        assert _lines(tmp_path, "a.py", sample("python/reports_class_docstring")) == [2]
 
     def test_reports_an_async_function_docstring(self, tmp_path: Path) -> None:
-        assert _lines(tmp_path, "a.py", 'async def f():\n    """Why."""\n    return 1\n') == [2]
+        assert _lines(tmp_path, "a.py", sample("python/reports_async_function_docstring")) == [2]
 
     def test_leaves_a_hash_in_a_string_alone(self, tmp_path: Path) -> None:
-        assert _lines(tmp_path, "a.py", 'x = "# not a comment"\n') == []
+        assert _lines(tmp_path, "a.py", sample("python/leaves_hash_in_string")) == []
 
     def test_leaves_a_bare_number_alone(self, tmp_path: Path) -> None:
-        assert _lines(tmp_path, "a.py", "def f():\n    1\n") == []
+        assert _lines(tmp_path, "a.py", sample("python/leaves_bare_number")) == []
 
     def test_leaves_an_assignment_alone(self, tmp_path: Path) -> None:
-        assert _lines(tmp_path, "a.py", "x = 1\n") == []
+        assert _lines(tmp_path, "a.py", sample("python/leaves_assignment")) == []
 
     def test_leaves_an_empty_file_alone(self, tmp_path: Path) -> None:
         assert _lines(tmp_path, "a.py", "") == []
 
-    def test_a_file_that_will_not_parse_is_unreadable(
-        self, tmp_path: Path, sample: Sample
-    ) -> None:
+    def test_a_file_that_will_not_parse_is_unreadable(self, tmp_path: Path) -> None:
         with pytest.raises(Unreadable):
-            _lines(tmp_path, "a.py", sample("broken_python"))
+            _lines(tmp_path, "a.py", sample("project/broken_python"))
 
 
 @pytest.mark.integration
 class TestYamlFilesOnDisk:
-    def test_reports_a_comment(self, tmp_path: Path, sample: Sample) -> None:
-        assert _lines(tmp_path, "a.yml", sample("commented_workflow")) == [3]
+    def test_reports_a_comment(self, tmp_path: Path) -> None:
+        assert _lines(tmp_path, "a.yml", sample("project/commented_workflow")) == [3]
 
-    def test_reads_the_yaml_suffix_too(self, tmp_path: Path, sample: Sample) -> None:
-        assert _lines(tmp_path, "a.yaml", sample("commented_workflow")) == [3]
+    def test_reads_the_yaml_suffix_too(self, tmp_path: Path) -> None:
+        assert _lines(tmp_path, "a.yaml", sample("project/commented_workflow")) == [3]
 
     def test_leaves_a_hash_in_a_block_scalar_alone(self, tmp_path: Path) -> None:
-        assert _lines(tmp_path, "a.yml", '---\nrun: >-\n  echo "# nope"\n') == []
+        assert _lines(tmp_path, "a.yml", sample("yaml/leaves_hash_in_block_scalar")) == []
 
     def test_leaves_a_hash_in_a_quoted_scalar_alone(self, tmp_path: Path) -> None:
-        assert _lines(tmp_path, "a.yml", '---\nname: "a # b"\n') == []
+        assert _lines(tmp_path, "a.yml", sample("yaml/leaves_hash_in_quoted_scalar")) == []
 
     def test_a_file_that_will_not_parse_is_unreadable(self, tmp_path: Path) -> None:
         with pytest.raises(Unreadable):
-            _lines(tmp_path, "a.yml", '"unclosed\n')
+            _lines(tmp_path, "a.yml", sample("yaml/file_will_parse_unreadable"))
 
 
 @pytest.mark.integration
 class TestOpenTofuFilesOnDisk:
     def test_reports_a_hash_comment(self, tmp_path: Path) -> None:
-        assert _lines(tmp_path, "a.tf", '# why\nresource "a" "b" {}\n') == [1]
+        assert _lines(tmp_path, "a.tf", sample("opentofu/reports_hash_comment")) == [1]
 
     def test_reports_a_double_slash_comment(self, tmp_path: Path) -> None:
-        assert _lines(tmp_path, "a.tf", 'resource "a" "b" {}\n// why\n') == [2]
+        assert _lines(tmp_path, "a.tf", sample("opentofu/reports_double_slash_comment")) == [2]
 
     def test_reports_a_block_comment(self, tmp_path: Path) -> None:
-        assert _lines(tmp_path, "a.tf", "locals {\n  /* why\n     more */\n}\n") == [2]
+        assert _lines(tmp_path, "a.tf", sample("opentofu/reports_block_comment")) == [2]
 
     def test_reads_the_tfvars_suffix_too(self, tmp_path: Path) -> None:
-        assert _lines(tmp_path, "a.tfvars", "# why\nbucket = 1\n") == [1]
+        assert _lines(tmp_path, "a.tfvars", sample("opentofu/reads_tfvars_suffix")) == [1]
 
     def test_reads_the_hcl_suffix_too(self, tmp_path: Path) -> None:
-        assert _lines(tmp_path, "a.hcl", "# why\nbucket = 1\n") == [1]
+        assert _lines(tmp_path, "a.hcl", sample("opentofu/reads_hcl_suffix")) == [1]
 
     def test_leaves_a_hash_in_a_string_alone(self, tmp_path: Path) -> None:
-        assert _lines(tmp_path, "a.tf", 'bucket = "a#b"\n') == []
+        assert _lines(tmp_path, "a.tf", sample("opentofu/leaves_hash_in_string")) == []
 
     def test_leaves_a_hash_in_a_heredoc_alone(self, tmp_path: Path) -> None:
-        assert _lines(tmp_path, "a.tf", "policy = <<EOT\n# not a comment\nEOT\n") == []
+        assert _lines(tmp_path, "a.tf", sample("opentofu/leaves_hash_in_heredoc")) == []
 
     def test_a_file_that_will_not_parse_still_reports_what_it_can(self, tmp_path: Path) -> None:
-        assert _lines(tmp_path, "a.tf", '# why\nresource "a" {\n') == [1]
+        assert _lines(tmp_path, "a.tf", sample("opentofu/file_will_parse_reports")) == [1]
 
 
 @pytest.mark.integration
 class TestJavascriptFilesOnDisk:
     def test_reports_a_comment(self, tmp_path: Path) -> None:
-        assert _lines(tmp_path, "a.js", "const a = 1;\n// why\n") == [2]
+        assert _lines(tmp_path, "a.js", sample("javascript/reports_comment")) == [2]
 
     def test_reports_a_block_comment(self, tmp_path: Path) -> None:
-        assert _lines(tmp_path, "a.js", "const a = 1;\n/* why\n   more */\n") == [2]
+        assert _lines(tmp_path, "a.js", sample("javascript/reports_block_comment")) == [2]
 
     def test_reads_the_mjs_suffix_too(self, tmp_path: Path) -> None:
         assert _lines(tmp_path, "a.mjs", "// why") == [1]
@@ -163,46 +165,46 @@ class TestJavascriptFilesOnDisk:
         assert _lines(tmp_path, "a.jsx", "// why") == [1]
 
     def test_leaves_a_url_in_a_string_alone(self, tmp_path: Path) -> None:
-        assert _lines(tmp_path, "a.js", 'const a = "https://example.com";\n') == []
+        assert _lines(tmp_path, "a.js", sample("javascript/leaves_url_in_string")) == []
 
     def test_leaves_a_url_in_a_template_literal_alone(self, tmp_path: Path) -> None:
-        assert _lines(tmp_path, "a.js", "const a = `https://${host}`;\n") == []
+        assert _lines(tmp_path, "a.js", sample("javascript/leaves_url_in_template_literal")) == []
 
     def test_leaves_a_double_slash_in_a_pattern_alone(self, tmp_path: Path) -> None:
-        assert _lines(tmp_path, "a.js", "const a = /https:\\/\\/x/;\n") == []
+        assert _lines(tmp_path, "a.js", sample("javascript/leaves_double_slash_in_pattern")) == []
 
     def test_a_slash_in_a_character_class_does_not_end_a_pattern(self, tmp_path: Path) -> None:
-        assert _lines(tmp_path, "a.js", "const a = /[a-z/]+/;\n") == []
+        assert _lines(tmp_path, "a.js", sample("javascript/slash_in_character_class_end")) == []
 
     def test_reports_a_comment_after_a_pattern(self, tmp_path: Path) -> None:
-        assert _lines(tmp_path, "a.js", "const a = /[a-z/]+/; // why\n") == [1]
+        assert _lines(tmp_path, "a.js", sample("javascript/reports_comment_after_pattern")) == [1]
 
     def test_reports_a_comment_after_a_division(self, tmp_path: Path) -> None:
-        assert _lines(tmp_path, "a.js", "const a = b / c; // why\n") == [1]
+        assert _lines(tmp_path, "a.js", sample("javascript/reports_comment_after_division")) == [1]
 
     def test_reports_a_comment_after_a_closing_element(self, tmp_path: Path) -> None:
-        assert _lines(tmp_path, "a.jsx", "const El = (\n  <div>a</div> // why\n);\n") == [2]
+        assert _lines(tmp_path, "a.jsx", sample("javascript/reports_comment_after_closing")) == [2]
 
     def test_reports_a_comment_after_a_self_closing_element(self, tmp_path: Path) -> None:
-        assert _lines(tmp_path, "a.jsx", "const El = <Foo prop={x} />; /* why */\n") == [1]
+        assert _lines(tmp_path, "a.jsx", sample("javascript/reports_comment_after_self")) == [1]
 
     def test_reports_a_comment_braced_inside_an_element(self, tmp_path: Path) -> None:
-        assert _lines(tmp_path, "a.jsx", "const El = <div>\n  {/* why */}\n</div>;\n") == [2]
+        assert _lines(tmp_path, "a.jsx", sample("javascript/reports_comment_braced_inside")) == [2]
 
     def test_leaves_markers_in_the_text_of_an_element_alone(self, tmp_path: Path) -> None:
-        assert _lines(tmp_path, "a.jsx", "const El = <div>a // not a comment</div>;\n") == []
+        assert _lines(tmp_path, "a.jsx", sample("javascript/leaves_markers_in_text_element")) == []
 
 
 @pytest.mark.integration
 class TestTypescriptFilesOnDisk:
     def test_reports_a_comment(self, tmp_path: Path) -> None:
-        assert _lines(tmp_path, "a.ts", "const a: string = 'x'; // why\n") == [1]
+        assert _lines(tmp_path, "a.ts", sample("typescript/reports_comment")) == [1]
 
     def test_reports_a_documentation_block(self, tmp_path: Path) -> None:
-        assert _lines(tmp_path, "a.ts", "interface A {\n  /** why */\n  b: string;\n}\n") == [2]
+        assert _lines(tmp_path, "a.ts", sample("typescript/reports_documentation_block")) == [2]
 
     def test_reads_a_declaration_file(self, tmp_path: Path) -> None:
-        assert _lines(tmp_path, "a.d.ts", '/// <reference types="vite/client" />\n') == [1]
+        assert _lines(tmp_path, "a.d.ts", sample("typescript/reads_declaration_file")) == [1]
 
     def test_reads_the_mts_suffix_too(self, tmp_path: Path) -> None:
         assert _lines(tmp_path, "a.mts", "// why") == [1]
@@ -211,46 +213,42 @@ class TestTypescriptFilesOnDisk:
         assert _lines(tmp_path, "a.cts", "// why") == [1]
 
     def test_a_type_assertion_does_not_hide_the_comment_after_it(self, tmp_path: Path) -> None:
-        assert _lines(tmp_path, "a.ts", "const a = <string>y;\n// why\n") == [2]
+        assert _lines(tmp_path, "a.ts", sample("typescript/type_assertion_hide_comment")) == [2]
 
 
 @pytest.mark.integration
 class TestTsxFilesOnDisk:
-    def test_reports_every_form_a_comment_takes(
-        self, tmp_path: Path, sample: Sample
-    ) -> None:
-        assert _lines(tmp_path, "App.tsx", sample("commented_tsx")) == [3, 5, 8]
+    def test_reports_every_form_a_comment_takes(self, tmp_path: Path) -> None:
+        assert _lines(tmp_path, "App.tsx", sample("project/commented_tsx")) == [3, 5, 8]
 
-    def test_a_file_with_no_comment_in_it_reports_nothing(
-        self, tmp_path: Path, sample: Sample
-    ) -> None:
-        assert _lines(tmp_path, "App.tsx", sample("clean_tsx")) == []
+    def test_a_file_with_no_comment_in_it_reports_nothing(self, tmp_path: Path) -> None:
+        assert _lines(tmp_path, "App.tsx", sample("tsx/file_no_comment_reports_nothing")) == []
 
     def test_an_element_does_not_hide_the_comment_after_it(self, tmp_path: Path) -> None:
-        assert _lines(tmp_path, "App.tsx", "const a = <div />;\n// why\n") == [2]
+        assert _lines(tmp_path, "App.tsx", sample("tsx/element_hide_comment_after")) == [2]
 
 
 @pytest.mark.integration
 class TestFilesNoReaderSpeaks:
     def test_a_markdown_file_reports_nothing(self, tmp_path: Path) -> None:
-        assert _lines(tmp_path, "notes.md", "# A heading\n") == []
+        assert _lines(tmp_path, "notes.md", sample("no_reader/markdown_file_reports_nothing")) == []
 
     def test_a_lock_file_reports_nothing(self, tmp_path: Path) -> None:
-        assert _lines(tmp_path, ".terraform.lock.hcl", "# generated\n") == []
+        assert _lines(tmp_path, ".terraform.lock.hcl", sample("no_reader/lock_file_reports")) == []
 
     def test_a_file_with_no_suffix_reports_nothing(self, tmp_path: Path) -> None:
-        assert _lines(tmp_path, "Makefile", "# why\nall:\n") == []
+        assert _lines(tmp_path, "Makefile", sample("no_reader/file_with_no_suffix_reports")) == []
 
 
 @pytest.mark.integration
 class TestParsedComments:
     def test_reads_a_grammar_named_directly(self, tmp_path: Path) -> None:
-        (tmp_path / "a.tf").write_text("# why\nbucket = 1\n", encoding="utf-8")
+        (tmp_path / "a.tf").write_text(sample("parsed/reads_grammar_named"), encoding="utf-8")
         content = (tmp_path / "a.tf").read_text(encoding="utf-8")
         assert parsed_comments(content, HCL) == [1]
 
     def test_reports_one_line_once(self, tmp_path: Path) -> None:
-        assert _lines(tmp_path, "b.js", "/* a */ /* b */\n") == [1]
+        assert _lines(tmp_path, "b.js", sample("parsed/reports_one_line_once")) == [1]
 
 
 @pytest.mark.integration
@@ -299,7 +297,8 @@ class TestCollectingFiles:
     def test_a_cache_directory_is_left_alone(self, write_tree: WriteTree) -> None:
         root = write_tree(CLEAN_PROJECT)
         (root / "src" / "__pycache__").mkdir()
-        (root / "src" / "__pycache__" / "cached.py").write_text("# why\n", encoding="utf-8")
+        cached = root / "src" / "__pycache__" / "cached.py"
+        cached.write_text(sample("collecting/cache_directory"), encoding="utf-8")
         assert "cached.py" not in str(_walk_source_files("src"))
 
     def test_a_glob_is_told_from_a_path(self) -> None:
@@ -333,9 +332,9 @@ class TestCollectingFiles:
 
 @pytest.mark.integration
 class TestReadingFiles:
-    def test_reads_the_content(self, write_tree: WriteTree, sample: Sample) -> None:
+    def test_reads_the_content(self, write_tree: WriteTree) -> None:
         write_tree(PROJECT)
-        assert _read(SOURCE, ScanResult()) == sample("commented_python")
+        assert _read(SOURCE, ScanResult()) == sample("project/commented_python")
 
     def test_a_missing_file_reads_as_nothing(self, write_tree: WriteTree) -> None:
         write_tree(PROJECT)
@@ -371,13 +370,13 @@ class TestReadingFiles:
         assert result.files_scanned == 0
 
     def test_a_file_that_will_not_parse_records_an_error(self, write_tree: WriteTree) -> None:
-        write_tree({**PROJECT, "src/broken.py": "broken_python"})
+        write_tree({**PROJECT, "src/broken.py": "project/broken_python"})
         result = ScanResult()
         read_comments(["src/broken.py"], result)
         assert result.had_error
 
     def test_a_file_that_will_not_parse_is_not_counted(self, write_tree: WriteTree) -> None:
-        write_tree({**PROJECT, "src/broken.py": "broken_python"})
+        write_tree({**PROJECT, "src/broken.py": "project/broken_python"})
         result = ScanResult()
         read_comments(["src/broken.py"], result)
         assert result.files_scanned == 0
@@ -448,17 +447,17 @@ class TestTheCommandOverATree:
         assert SOURCE in run_cli(FULL_RUN)[1]
 
     def test_reads_a_workflow_file(self, write_tree: WriteTree, run_cli: RunCli) -> None:
-        write_tree({**CLEAN_PROJECT, WORKFLOW: "commented_workflow"})
+        write_tree({**CLEAN_PROJECT, WORKFLOW: "project/commented_workflow"})
         assert WORKFLOW in run_cli(FULL_RUN)[1]
 
     def test_reads_a_typescript_component(self, write_tree: WriteTree, run_cli: RunCli) -> None:
-        write_tree({**CLEAN_PROJECT, COMPONENT: "commented_tsx"})
+        write_tree({**CLEAN_PROJECT, COMPONENT: "project/commented_tsx"})
         assert COMPONENT in run_cli(FULL_RUN)[1]
 
     def test_counts_every_comment_a_component_carries(
         self, write_tree: WriteTree, run_cli: RunCli
     ) -> None:
-        write_tree({**CLEAN_PROJECT, COMPONENT: "commented_tsx"})
+        write_tree({**CLEAN_PROJECT, COMPONENT: "project/commented_tsx"})
         assert run_cli([*FULL_RUN, "--count"])[1] == "3\n"
 
     def test_leaves_the_vendored_javascript_alone(
@@ -480,7 +479,7 @@ class TestTheCommandOverATree:
     def test_fail_fast_stops_at_the_first_finding(
         self, write_tree: WriteTree, run_cli: RunCli
     ) -> None:
-        write_tree({**PROJECT, WORKFLOW: "commented_workflow"})
+        write_tree({**PROJECT, WORKFLOW: "project/commented_workflow"})
         assert len(run_cli([*FULL_RUN, "--fail-fast"])[1].splitlines()) == 1
 
     def test_warn_only_succeeds_with_findings(
@@ -547,7 +546,7 @@ class TestTheCommandWhenATreeWillNotRead:
     def test_a_broken_file_in_the_tree_is_an_error(
         self, write_tree: WriteTree, run_cli: RunCli
     ) -> None:
-        write_tree({**CLEAN_PROJECT, "src/broken.py": "broken_python"})
+        write_tree({**CLEAN_PROJECT, "src/broken.py": "project/broken_python"})
         assert run_cli(FULL_RUN)[0] == EXIT_ERROR
 
     def test_the_output_modes_are_mutually_exclusive(

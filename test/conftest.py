@@ -15,7 +15,7 @@ if TYPE_CHECKING:
     from collections.abc import Callable
 
 
-def _sample(directory: Path, name: str) -> str:
+def read_sample(directory: Path, name: str) -> str:
     return (directory / "samples" / f"{name}.txt").read_text(encoding="utf-8")
 
 
@@ -26,13 +26,13 @@ VENDORED = "src/www/spa/vendor/leaflet.js"
 NOTES = "src/notes.md"
 
 CLEAN_PROJECT = {
-    SOURCE: "clean_python",
-    WORKFLOW: "clean_workflow",
-    VENDORED: "vendored_javascript",
-    NOTES: "prose",
+    SOURCE: "project/clean_python",
+    WORKFLOW: "project/clean_workflow",
+    VENDORED: "project/vendored_javascript",
+    NOTES: "project/prose",
 }
 
-PROJECT = {**CLEAN_PROJECT, SOURCE: "commented_python"}
+PROJECT = {**CLEAN_PROJECT, SOURCE: "project/commented_python"}
 
 EXCLUDE_VENDORED = "src/www/spa/vendor/*"
 
@@ -83,16 +83,9 @@ def write_tree(
         for relative, name in files.items():
             path = tmp_path / relative
             path.parent.mkdir(parents=True, exist_ok=True)
-            path.write_text(_sample(request.path.parent, name), encoding="utf-8")
+            path.write_text(read_sample(request.path.parent, name), encoding="utf-8")
         monkeypatch.chdir(tmp_path)
         return tmp_path
 
     return builder
 
-
-@pytest.fixture
-def sample(request: pytest.FixtureRequest) -> Callable[[str], str]:
-    def reader(name: str) -> str:
-        return _sample(request.path.parent, name)
-
-    return reader
