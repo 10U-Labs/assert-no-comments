@@ -21,7 +21,6 @@
   - [Tests](#tests)
     - [A conftest with no fixture in it stays](#a-conftest-with-no-fixture-in-it-stays)
     - [Cover every tier the change touches](#cover-every-tier-the-change-touches)
-    - [One assert per pytest](#one-assert-per-pytest)
     - [Test first](#test-first)
     - [Trees under test go in samples](#trees-under-test-go-in-samples)
   - [Verification](#verification)
@@ -96,10 +95,6 @@ A reader in `src/assert_no_comments/scanner.py` is a parser for the language it 
 #### Cover every tier the change touches
 
 `test/unit/` for the readers and the CLI helpers, `test/integration/` for the CLI driven over a real tree, `test/e2e/` for the installed console script run the way a workflow step runs it. Unit and integration each gate on full branch coverage on their own rather than on the two together. `e2e-tests` carries no coverage gate and cannot, since it runs the command in another process, so a line reachable only through the console script is reached by `run_cli`, the in-process fixture in `test/conftest.py`, and asserted again through the subprocess.
-
-#### One assert per pytest
-
-Every test asserts once. A test name is a sentence saying what is true, `test_a_hash_inside_a_string_is_not_reported`, and carries the docstring `pylint-test` requires.
 
 #### Test first
 
