@@ -5,14 +5,17 @@ from __future__ import annotations
 import pytest
 
 from assert_no_comments.scanner import (
+    HCL,
     Finding,
     Unreadable,
     comments_in,
     hcl_comments,
     javascript_comments,
-    marked_comments,
+    parsed_comments,
     python_comments,
     reader_for,
+    tsx_comments,
+    typescript_comments,
     yaml_comments,
 )
 
@@ -104,82 +107,128 @@ class TestHclComments:
         assert hcl_comments("locals {\n  /* why\n     more why */\n}\n") == [2]
 
     def test_a_hash_inside_a_string_is_not_reported(self) -> None:
-        """A hash inside a quoted string is content."""
+        """A hash the grammar reads as string content is not a comment."""
         assert hcl_comments('bucket = "a#b"\n') == []
 
     def test_an_escaped_quote_does_not_end_a_string(self) -> None:
         """A backslash escapes the quote that would have closed the string."""
         assert hcl_comments('bucket = "a\\"#b"\n') == []
 
-    def test_a_string_nobody_closed_swallows_the_rest_of_the_file(self) -> None:
-        """An unclosed string runs to the end, so nothing after it is read."""
-        assert hcl_comments('bucket = "a#b\n') == []
+    def test_a_hash_inside_a_heredoc_is_not_reported(self) -> None:
+        """A hash inside a heredoc is content."""
+        assert hcl_comments("policy = <<EOT\n# not a comment\nEOT\n") == []
 
-    def test_a_block_comment_nobody_closed_is_still_reported(self) -> None:
-        """An unclosed block comment is reported where it opened."""
-        assert hcl_comments("locals {\n  /* why\n") == [2]
+    def test_a_file_that_will_not_parse_still_reports_what_it_can(self) -> None:
+        """A broken file is read as far as the grammar gets rather than failing."""
+        assert hcl_comments('# why\nresource "a" {\n') == [1]
 
 
 @pytest.mark.unit
 class TestJavascriptComments:
-    """Reading a JavaScript file."""
+    """Reading a JavaScript or JSX file."""
 
     def test_a_comment_is_reported(self) -> None:
         """A double slash runs a comment to the end of the line."""
         assert javascript_comments("const a = 1;\n// why\n") == [2]
+
+    def test_a_block_comment_is_reported(self) -> None:
+        """A block comment is a finding on the line it opens."""
+        assert javascript_comments("const a = 1;\n/* why\n   more why */\n") == [2]
 
     def test_a_double_slash_inside_a_string_is_not_reported(self) -> None:
         """A URL inside a string is content."""
         assert javascript_comments('const a = "https://example.com";\n') == []
 
     def test_a_double_slash_inside_a_template_literal_is_not_reported(self) -> None:
-        """A backtick opens a string like any other quote."""
+        """A backtick opens a string the grammar reads to its end."""
         assert javascript_comments("const a = `https://${host}`;\n") == []
+
+    def test_a_double_slash_inside_a_pattern_is_not_reported(self) -> None:
+        """An escaped slash inside a regular expression is pattern content."""
+        assert javascript_comments("const a = /https:\\/\\/x/;\n") == []
 
     def test_a_slash_inside_a_character_class_does_not_end_the_pattern(self) -> None:
         """A slash between brackets is pattern content."""
         assert javascript_comments("const a = /[a-z/]+/;\n") == []
 
-    def test_a_pattern_after_return_is_not_read_as_division(self) -> None:
-        """A slash after return opens a pattern."""
-        assert javascript_comments("function f() {\n  return /a/;\n}\n") == []
+    def test_a_comment_after_a_pattern_is_reported(self) -> None:
+        """A pattern the grammar closes leaves the comment after it visible."""
+        assert javascript_comments("const a = /[a-z/]+/; // why\n") == [1]
 
-    def test_an_escaped_slash_does_not_end_a_pattern(self) -> None:
-        """A backslash escapes the slash that would have closed the pattern."""
-        assert javascript_comments("const a = /a\\/b/;\n") == []
+    def test_a_comment_after_a_division_is_reported(self) -> None:
+        """A slash after a name divides, so the comment after it is a comment."""
+        assert javascript_comments("const a = b / c; // why\n") == [1]
 
-    def test_a_pattern_nobody_closed_swallows_the_rest_of_the_file(self) -> None:
-        """An unclosed pattern with no line break runs to the end."""
-        assert javascript_comments("const a = /abc") == []
+    def test_a_comment_after_a_closing_element_is_reported(self) -> None:
+        """The slash of a JSX closing tag does not open a pattern."""
+        assert javascript_comments("const El = (\n  <div>\n    a\n  </div> // why\n);\n") == [4]
 
-    def test_a_line_break_ends_a_pattern(self) -> None:
-        """A pattern cannot span lines, so the next line is read as code."""
-        assert javascript_comments("const a = /abc\n// why\n") == [2]
+    def test_a_comment_after_a_self_closing_element_is_reported(self) -> None:
+        """The slash of a self-closing JSX tag does not open a pattern."""
+        assert javascript_comments("const El = <Foo prop={x} />; /* why */\n") == [1]
+
+    def test_a_comment_braced_inside_an_element_is_reported(self) -> None:
+        """A braced block comment is how JSX carries a comment among children."""
+        assert javascript_comments("const El = (\n  <div>\n    {/* why */}\n  </div>\n);\n") == [3]
+
+    def test_markers_in_the_text_of_an_element_are_not_reported(self) -> None:
+        """Text between JSX tags renders, so it is content rather than a comment."""
+        assert javascript_comments("const El = <div>a // not a comment</div>;\n") == []
 
     def test_a_comment_on_the_last_line_with_no_line_break_is_reported(self) -> None:
         """A file ending mid-comment still reports it."""
         assert javascript_comments("// why") == [1]
 
-    def test_a_division_is_not_read_as_a_pattern(self) -> None:
-        """A slash after a name divides."""
-        assert javascript_comments("const a = b / c;\n// why\n") == [2]
-
-    def test_a_pattern_at_the_very_start_of_a_file_is_not_read_as_division(self) -> None:
-        """A slash with nothing before it opens a pattern."""
-        assert javascript_comments("/a/.test(b);\n") == []
+    def test_a_file_that_will_not_parse_still_reports_what_it_can(self) -> None:
+        """A broken file is read as far as the grammar gets rather than failing."""
+        assert javascript_comments("const a = (((\n// why\n") == [2]
 
 
 @pytest.mark.unit
-class TestMarkedComments:
-    """The shared reader the marker languages are built from."""
+class TestTypescriptComments:
+    """Reading a TypeScript file."""
 
-    def test_a_language_with_no_block_comment_reads_its_line_comments(self) -> None:
-        """Passing a block marker that never appears leaves line comments working."""
-        assert marked_comments("a = 1\n-- why\n", "'", ("--",), ("<!--", "-->"), False) == [2]
+    def test_a_comment_is_reported(self) -> None:
+        """A double slash runs a comment to the end of the line."""
+        assert typescript_comments("const a: string = 'x'; // why\n") == [1]
+
+    def test_a_documentation_block_is_reported(self) -> None:
+        """A doc block is prose beside code like any other block comment."""
+        assert typescript_comments("interface A {\n  /** why */\n  b: string;\n}\n") == [2]
+
+    def test_a_type_assertion_does_not_hide_the_comment_after_it(self) -> None:
+        """Angle brackets assert a type here rather than opening an element."""
+        assert typescript_comments("const a = <string>y;\n// why\n") == [2]
+
+
+@pytest.mark.unit
+class TestTsxComments:
+    """Reading a TSX file."""
+
+    def test_a_comment_is_reported(self) -> None:
+        """A double slash runs a comment to the end of the line."""
+        assert tsx_comments("const a = <div />;\n// why\n") == [2]
+
+    def test_a_comment_after_a_closing_element_is_reported(self) -> None:
+        """The slash of a JSX closing tag does not open a pattern."""
+        assert tsx_comments("const El = (\n  <div>\n    a\n  </div> // why\n);\n") == [4]
+
+    def test_a_comment_braced_inside_an_element_is_reported(self) -> None:
+        """A braced block comment is how TSX carries a comment among children."""
+        assert tsx_comments("const El = (\n  <div>\n    {/* why */}\n  </div>\n);\n") == [3]
+
+
+@pytest.mark.unit
+class TestParsedComments:
+    """The shared reader every grammar language is built from."""
+
+    def test_a_grammar_named_directly_reads_its_comments(self) -> None:
+        """A reader is a grammar and the walk that pulls the comments out of it."""
+        assert parsed_comments("# why\nbucket = 1\n", HCL) == [1]
 
     def test_two_comments_on_one_line_are_reported_once(self) -> None:
-        """A line is a finding at most once, however many markers it holds."""
-        assert marked_comments("/* a */ /* b */\n", '"', (), ("/*", "*/"), False) == [1]
+        """A line is a finding at most once, however many comments it holds."""
+        assert javascript_comments("/* a */ /* b */\n") == [1]
 
 
 @pytest.mark.unit
@@ -202,6 +251,34 @@ class TestReaderFor:
         """An .mjs suffix names JavaScript, as .js does."""
         assert reader_for("src/app.mjs") is javascript_comments
 
+    def test_a_jsx_file_gets_the_javascript_reader(self) -> None:
+        """The JavaScript grammar covers JSX, so .jsx needs no grammar of its own."""
+        assert reader_for("src/App.jsx") is javascript_comments
+
+    def test_a_typescript_file_gets_the_typescript_reader(self) -> None:
+        """A .ts suffix names TypeScript."""
+        assert reader_for("src/counting.ts") is typescript_comments
+
+    def test_a_declaration_file_gets_the_typescript_reader(self) -> None:
+        """A .d.ts name ends in .ts, so it needs no entry of its own."""
+        assert reader_for("src/vite-env.d.ts") is typescript_comments
+
+    def test_a_module_typescript_file_gets_the_typescript_reader(self) -> None:
+        """An .mts suffix names TypeScript, as .ts does."""
+        assert reader_for("src/app.mts") is typescript_comments
+
+    def test_a_commonjs_typescript_file_gets_the_typescript_reader(self) -> None:
+        """A .cts suffix names TypeScript, as .ts does."""
+        assert reader_for("src/app.cts") is typescript_comments
+
+    def test_a_tsx_file_gets_the_tsx_reader(self) -> None:
+        """A .tsx suffix names TSX, which is its own dialect."""
+        assert reader_for("src/App.tsx") is tsx_comments
+
+    def test_tsx_and_typescript_are_read_by_different_grammars(self) -> None:
+        """The two dialects read the same characters differently."""
+        assert reader_for("src/App.tsx") is not reader_for("src/app.ts")
+
     def test_a_lock_file_gets_no_reader(self) -> None:
         """A file OpenTofu writes is nobody's source."""
         assert reader_for("infra/.terraform.lock.hcl") is None
@@ -209,6 +286,10 @@ class TestReaderFor:
     def test_a_markdown_file_gets_no_reader(self) -> None:
         """Prose is the content of a .md file rather than a gloss on it."""
         assert reader_for("README.md") is None
+
+    def test_a_suffix_nobody_speaks_gets_no_reader(self) -> None:
+        """The table is a decision about the languages in it and nothing else."""
+        assert reader_for("notes.txt") is None
 
 
 @pytest.mark.unit

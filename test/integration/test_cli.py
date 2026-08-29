@@ -9,8 +9,11 @@ from pathlib import Path
 from test.samples import (
     BROKEN_PYTHON,
     CLEAN_PROJECT,
+    CLEAN_TSX,
     COMMENTED_PYTHON,
+    COMMENTED_TSX,
     COMMENTED_WORKFLOW,
+    COMPONENT,
     DOCUMENTED_PYTHON,
     EXCLUDE_VENDORED,
     FULL_RUN,
@@ -43,7 +46,7 @@ from assert_no_comments.cli import (
     read_comments,
     should_skip,
 )
-from assert_no_comments.scanner import Finding, Unreadable, comments_in, marked_comments
+from assert_no_comments.scanner import HCL, Finding, Unreadable, comments_in, parsed_comments
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -158,25 +161,25 @@ class TestOpenTofuFilesOnDisk:
         """A block comment is a finding on the line it opens."""
         assert _lines(tmp_path, "a.tf", "locals {\n  /* why\n     more */\n}\n") == [2]
 
-    def test_reports_an_unclosed_block_comment(self, tmp_path: Path) -> None:
-        """An unclosed block comment is reported where it opened."""
-        assert _lines(tmp_path, "a.tf", "locals {\n  /* why\n") == [2]
-
     def test_reads_the_tfvars_suffix_too(self, tmp_path: Path) -> None:
         """A .tfvars file is HCL, as a .tf file is."""
         assert _lines(tmp_path, "a.tfvars", "# why\nbucket = 1\n") == [1]
+
+    def test_reads_the_hcl_suffix_too(self, tmp_path: Path) -> None:
+        """A .hcl file is HCL, as a .tf file is."""
+        assert _lines(tmp_path, "a.hcl", "# why\nbucket = 1\n") == [1]
 
     def test_leaves_a_hash_in_a_string_alone(self, tmp_path: Path) -> None:
         """A hash inside a quoted string is content."""
         assert _lines(tmp_path, "a.tf", 'bucket = "a#b"\n') == []
 
-    def test_an_escaped_quote_does_not_end_a_string(self, tmp_path: Path) -> None:
-        """A backslash escapes the quote that would have closed the string."""
-        assert _lines(tmp_path, "a.tf", 'bucket = "a\\"#b"\n') == []
+    def test_leaves_a_hash_in_a_heredoc_alone(self, tmp_path: Path) -> None:
+        """A hash inside a heredoc is content."""
+        assert _lines(tmp_path, "a.tf", "policy = <<EOT\n# not a comment\nEOT\n") == []
 
-    def test_an_unclosed_string_swallows_the_rest(self, tmp_path: Path) -> None:
-        """An unclosed string runs to the end, so nothing after it is read."""
-        assert _lines(tmp_path, "a.tf", 'bucket = "a#b\n') == []
+    def test_a_file_that_will_not_parse_still_reports_what_it_can(self, tmp_path: Path) -> None:
+        """A broken file is read as far as the grammar gets rather than failing."""
+        assert _lines(tmp_path, "a.tf", '# why\nresource "a" {\n') == [1]
 
 
 @pytest.mark.integration
@@ -186,6 +189,10 @@ class TestJavascriptFilesOnDisk:
     def test_reports_a_comment(self, tmp_path: Path) -> None:
         """A double slash runs a comment to the end of the line."""
         assert _lines(tmp_path, "a.js", "const a = 1;\n// why\n") == [2]
+
+    def test_reports_a_block_comment(self, tmp_path: Path) -> None:
+        """A block comment is a finding on the line it opens."""
+        assert _lines(tmp_path, "a.js", "const a = 1;\n/* why\n   more */\n") == [2]
 
     def test_reads_the_mjs_suffix_too(self, tmp_path: Path) -> None:
         """An .mjs file is JavaScript, as a .js file is."""
@@ -204,36 +211,86 @@ class TestJavascriptFilesOnDisk:
         assert _lines(tmp_path, "a.js", 'const a = "https://example.com";\n') == []
 
     def test_leaves_a_url_in_a_template_literal_alone(self, tmp_path: Path) -> None:
-        """A backtick opens a string like any other quote."""
+        """A backtick opens a string the grammar reads to its end."""
         assert _lines(tmp_path, "a.js", "const a = `https://${host}`;\n") == []
+
+    def test_leaves_a_double_slash_in_a_pattern_alone(self, tmp_path: Path) -> None:
+        """An escaped slash inside a regular expression is pattern content."""
+        assert _lines(tmp_path, "a.js", "const a = /https:\\/\\/x/;\n") == []
 
     def test_a_slash_in_a_character_class_does_not_end_a_pattern(self, tmp_path: Path) -> None:
         """A slash between brackets is pattern content."""
         assert _lines(tmp_path, "a.js", "const a = /[a-z/]+/;\n") == []
 
-    def test_a_pattern_after_return_is_not_division(self, tmp_path: Path) -> None:
-        """A slash after return opens a pattern."""
-        assert _lines(tmp_path, "a.js", "function f() {\n  return /a/;\n}\n") == []
+    def test_reports_a_comment_after_a_pattern(self, tmp_path: Path) -> None:
+        """A pattern the grammar closes leaves the comment after it visible."""
+        assert _lines(tmp_path, "a.js", "const a = /[a-z/]+/; // why\n") == [1]
 
-    def test_a_pattern_opening_a_file_is_not_division(self, tmp_path: Path) -> None:
-        """A slash with nothing before it opens a pattern."""
-        assert _lines(tmp_path, "a.js", "/a/.test(b);\n") == []
+    def test_reports_a_comment_after_a_division(self, tmp_path: Path) -> None:
+        """A slash after a name divides, so the comment after it is a comment."""
+        assert _lines(tmp_path, "a.js", "const a = b / c; // why\n") == [1]
 
-    def test_an_escaped_slash_does_not_end_a_pattern(self, tmp_path: Path) -> None:
-        """A backslash escapes the slash that would have closed the pattern."""
-        assert _lines(tmp_path, "a.js", "const a = /a\\/b/;\n") == []
+    def test_reports_a_comment_after_a_closing_element(self, tmp_path: Path) -> None:
+        """The slash of a JSX closing tag does not open a pattern."""
+        assert _lines(tmp_path, "a.jsx", "const El = (\n  <div>a</div> // why\n);\n") == [2]
 
-    def test_an_unclosed_pattern_swallows_the_rest(self, tmp_path: Path) -> None:
-        """An unclosed pattern with no line break runs to the end."""
-        assert _lines(tmp_path, "a.js", "const a = /abc") == []
+    def test_reports_a_comment_after_a_self_closing_element(self, tmp_path: Path) -> None:
+        """The slash of a self-closing JSX tag does not open a pattern."""
+        assert _lines(tmp_path, "a.jsx", "const El = <Foo prop={x} />; /* why */\n") == [1]
 
-    def test_a_line_break_ends_a_pattern(self, tmp_path: Path) -> None:
-        """A pattern cannot span lines, so the next line is read as code."""
-        assert _lines(tmp_path, "a.js", "const a = /abc\n// why\n") == [2]
+    def test_reports_a_comment_braced_inside_an_element(self, tmp_path: Path) -> None:
+        """A braced block comment is how JSX carries a comment among children."""
+        assert _lines(tmp_path, "a.jsx", "const El = <div>\n  {/* why */}\n</div>;\n") == [2]
 
-    def test_a_division_is_not_a_pattern(self, tmp_path: Path) -> None:
-        """A slash after a name divides."""
-        assert _lines(tmp_path, "a.js", "const a = b / c;\n// why\n") == [2]
+    def test_leaves_markers_in_the_text_of_an_element_alone(self, tmp_path: Path) -> None:
+        """Text between JSX tags renders, so it is content rather than a comment."""
+        assert _lines(tmp_path, "a.jsx", "const El = <div>a // not a comment</div>;\n") == []
+
+
+@pytest.mark.integration
+class TestTypescriptFilesOnDisk:
+    """TypeScript files read from the file system."""
+
+    def test_reports_a_comment(self, tmp_path: Path) -> None:
+        """A double slash runs a comment to the end of the line."""
+        assert _lines(tmp_path, "a.ts", "const a: string = 'x'; // why\n") == [1]
+
+    def test_reports_a_documentation_block(self, tmp_path: Path) -> None:
+        """A doc block is prose beside code like any other block comment."""
+        assert _lines(tmp_path, "a.ts", "interface A {\n  /** why */\n  b: string;\n}\n") == [2]
+
+    def test_reads_a_declaration_file(self, tmp_path: Path) -> None:
+        """A .d.ts name ends in .ts, so it needs no entry of its own."""
+        assert _lines(tmp_path, "a.d.ts", '/// <reference types="vite/client" />\n') == [1]
+
+    def test_reads_the_mts_suffix_too(self, tmp_path: Path) -> None:
+        """An .mts file is TypeScript, as a .ts file is."""
+        assert _lines(tmp_path, "a.mts", "// why") == [1]
+
+    def test_reads_the_cts_suffix_too(self, tmp_path: Path) -> None:
+        """A .cts file is TypeScript, as a .ts file is."""
+        assert _lines(tmp_path, "a.cts", "// why") == [1]
+
+    def test_a_type_assertion_does_not_hide_the_comment_after_it(self, tmp_path: Path) -> None:
+        """Angle brackets assert a type in TypeScript rather than opening an element."""
+        assert _lines(tmp_path, "a.ts", "const a = <string>y;\n// why\n") == [2]
+
+
+@pytest.mark.integration
+class TestTsxFilesOnDisk:
+    """TSX files read from the file system."""
+
+    def test_reports_every_form_a_comment_takes(self, tmp_path: Path) -> None:
+        """The braced comment, the line comment and the block are all findings."""
+        assert _lines(tmp_path, "App.tsx", COMMENTED_TSX) == [3, 5, 8]
+
+    def test_a_file_with_no_comment_in_it_reports_nothing(self, tmp_path: Path) -> None:
+        """An element and an export are code, not prose."""
+        assert _lines(tmp_path, "App.tsx", CLEAN_TSX) == []
+
+    def test_an_element_does_not_hide_the_comment_after_it(self, tmp_path: Path) -> None:
+        """Angle brackets open an element in TSX rather than asserting a type."""
+        assert _lines(tmp_path, "App.tsx", "const a = <div />;\n// why\n") == [2]
 
 
 @pytest.mark.integration
@@ -254,20 +311,18 @@ class TestFilesNoReaderSpeaks:
 
 
 @pytest.mark.integration
-class TestMarkedComments:
-    """The shared reader the marker languages are built from."""
+class TestParsedComments:
+    """The shared reader every grammar language is built from."""
 
-    def test_reads_a_language_it_was_told_about(self, tmp_path: Path) -> None:
-        """A marker set the readers do not use still works."""
-        (tmp_path / "a.sql").write_text("a = 1\n-- why\n", encoding="utf-8")
-        content = (tmp_path / "a.sql").read_text(encoding="utf-8")
-        assert marked_comments(content, "'", ("--",), ("/*", "*/"), False) == [2]
+    def test_reads_a_grammar_named_directly(self, tmp_path: Path) -> None:
+        """A reader is a grammar and the walk that pulls the comments out of it."""
+        (tmp_path / "a.tf").write_text("# why\nbucket = 1\n", encoding="utf-8")
+        content = (tmp_path / "a.tf").read_text(encoding="utf-8")
+        assert parsed_comments(content, HCL) == [1]
 
     def test_reports_one_line_once(self, tmp_path: Path) -> None:
-        """A line is a finding at most once, however many markers it holds."""
-        (tmp_path / "b.sql").write_text("/* a */ /* b */\n", encoding="utf-8")
-        content = (tmp_path / "b.sql").read_text(encoding="utf-8")
-        assert marked_comments(content, "'", (), ("/*", "*/"), False) == [1]
+        """A line is a finding at most once, however many comments it holds."""
+        assert _lines(tmp_path, "b.js", "/* a */ /* b */\n") == [1]
 
 
 @pytest.mark.integration
@@ -518,6 +573,18 @@ class TestTheCommandOverATree:
         """A comment in a workflow file is a finding too."""
         write_tree({**CLEAN_PROJECT, WORKFLOW: COMMENTED_WORKFLOW})
         assert WORKFLOW in run_cli(FULL_RUN)[1]
+
+    def test_reads_a_typescript_component(self, write_tree: WriteTree, run_cli: RunCli) -> None:
+        """A comment in a TSX file is a finding too."""
+        write_tree({**CLEAN_PROJECT, COMPONENT: COMMENTED_TSX})
+        assert COMPONENT in run_cli(FULL_RUN)[1]
+
+    def test_counts_every_comment_a_component_carries(
+        self, write_tree: WriteTree, run_cli: RunCli
+    ) -> None:
+        """The braced comment, the line comment and the block are three findings."""
+        write_tree({**CLEAN_PROJECT, COMPONENT: COMMENTED_TSX})
+        assert run_cli([*FULL_RUN, "--count"])[1] == "3\n"
 
     def test_leaves_the_vendored_javascript_alone(
         self, write_tree: WriteTree, run_cli: RunCli

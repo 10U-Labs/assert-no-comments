@@ -27,6 +27,24 @@ VENDORED_JAVASCRIPT = """\
 const leaflet = 1;
 """
 
+CLEAN_TSX = """\
+const App = () => <div />;
+
+export default App;
+"""
+
+COMMENTED_TSX = """\
+const App = () => (
+  <div>
+    {/* why */}
+    <Foo />
+  </div> // why
+);
+
+/* why */
+export default App;
+"""
+
 CLEAN_WORKFLOW = """\
 ---
 jobs:
@@ -45,6 +63,7 @@ PROSE = """\
 """
 
 SOURCE = "src/counting.py"
+COMPONENT = "src/App.tsx"
 WORKFLOW = ".github/workflows/release.yml"
 VENDORED = "src/www/spa/vendor/leaflet.js"
 NOTES = "src/notes.md"

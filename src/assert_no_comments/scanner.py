@@ -10,14 +10,23 @@ import tokenize
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
+import tree_sitter_hcl
+import tree_sitter_javascript
+import tree_sitter_typescript
 import yaml
+from tree_sitter import Language, Parser
 
 if TYPE_CHECKING:
     from collections.abc import Callable
 
 DEFINITION_NODES = (ast.AsyncFunctionDef, ast.ClassDef, ast.FunctionDef, ast.Module)
 
-OPENS_A_PATTERN = "(,=:[!&|?{};+-*%~^<>"
+COMMENT_NODE = "comment"
+
+HCL = Language(tree_sitter_hcl.language())
+JAVASCRIPT = Language(tree_sitter_javascript.language())
+TYPESCRIPT = Language(tree_sitter_typescript.language_typescript())
+TSX = Language(tree_sitter_typescript.language_tsx())
 
 
 class Unreadable(Exception):
@@ -42,97 +51,28 @@ def _lines_of(text: str, places: list[int]) -> list[int]:
     return sorted({bisect.bisect_right(breaks, place) + 1 for place in places})
 
 
-def _past_quoted(text: str, place: int) -> int:
-    """Step over a quoted string, honouring backslash escapes."""
-    quote = text[place]
-    place += 1
-    while place < len(text):
-        if text[place] == "\\":
-            place += 2
-        elif text[place] == quote:
-            return place + 1
-        else:
-            place += 1
-    return place
+def parsed_comments(text: str, language: Language) -> list[int]:
+    """Find the comments a grammar recognises in a file.
 
-
-def _past_line(text: str, place: int) -> int:
-    """Step to the end of the line an offset sits on."""
-    end = text.find("\n", place)
-    return len(text) if end < 0 else end
-
-
-def _past_block(text: str, place: int, closing: str) -> int:
-    """Step over a block comment, to the end of the file when nobody closed it."""
-    end = text.find(closing, place + len(closing))
-    return len(text) if end < 0 else end + len(closing)
-
-
-def _opens_a_pattern(text: str, place: int) -> bool:
-    """Decide whether a slash starts a regular expression rather than a division."""
-    before = text[:place].rstrip()
-    return not before or before[-1] in OPENS_A_PATTERN or before.endswith("return")
-
-
-def _past_pattern(text: str, place: int) -> int:
-    """Step over a regular expression literal, ending it at a line break."""
-    place += 1
-    inside_a_class = False
-    while place < len(text):
-        character = text[place]
-        if character == "\\":
-            place += 2
-        elif character == "\n":
-            return place
-        elif character == "[":
-            inside_a_class = True
-            place += 1
-        elif character == "]":
-            inside_a_class = False
-            place += 1
-        elif character == "/" and not inside_a_class:
-            return place + 1
-        else:
-            place += 1
-    return place
-
-
-def marked_comments(
-    text: str,
-    quotes: str,
-    line_markers: tuple[str, ...],
-    block: tuple[str, str],
-    patterns: bool,
-) -> list[int]:
-    """Find the comments in a language that marks them with fixed characters.
+    The grammar decides what every character is, so a marker inside a string,
+    a template literal, a regular expression, a heredoc or the text of a JSX
+    element is content rather than the opening of a comment.
 
     Args:
         text: The file content.
-        quotes: Every character that opens a string.
-        line_markers: Every marker running a comment to the end of the line.
-        block: The opening and closing markers of a block comment.
-        patterns: Whether a slash can open a regular expression literal.
+        language: The grammar to read the file with.
 
     Returns:
         The lines a comment starts on, sorted and without repeats.
     """
     places: list[int] = []
-    place = 0
-    while place < len(text):
-        character = text[place]
-        if character in quotes:
-            place = _past_quoted(text, place)
-        elif any(text.startswith(marker, place) for marker in line_markers):
-            places.append(place)
-            place = _past_line(text, place)
-        elif text.startswith(block[0], place):
-            places.append(place)
-            place = _past_block(text, place, block[1])
-        elif patterns and character == "/" and _opens_a_pattern(text, place):
-            place = _past_pattern(text, place)
-        else:
-            place += 1
-    return _lines_of(text, places)
+    pending = [Parser(language).parse(text.encode("utf-8")).root_node]
+    while pending:
+        node = pending.pop()
+        if node.type == COMMENT_NODE:
+            places.append(node.start_point[0] + 1)
+        pending.extend(node.children)
+    return sorted(set(places))
 
 
 def hcl_comments(text: str) -> list[int]:
@@ -144,11 +84,11 @@ def hcl_comments(text: str) -> list[int]:
     Returns:
         The lines a comment starts on.
     """
-    return marked_comments(text, '"', ("#", "//"), ("/*", "*/"), False)
+    return parsed_comments(text, HCL)
 
 
 def javascript_comments(text: str) -> list[int]:
-    """Find the comments in a JavaScript file.
+    """Find the comments in a JavaScript or JSX file.
 
     Args:
         text: The file content.
@@ -156,7 +96,35 @@ def javascript_comments(text: str) -> list[int]:
     Returns:
         The lines a comment starts on.
     """
-    return marked_comments(text, "\"'`", ("//",), ("/*", "*/"), True)
+    return parsed_comments(text, JAVASCRIPT)
+
+
+def typescript_comments(text: str) -> list[int]:
+    """Find the comments in a TypeScript file.
+
+    Args:
+        text: The file content.
+
+    Returns:
+        The lines a comment starts on.
+    """
+    return parsed_comments(text, TYPESCRIPT)
+
+
+def tsx_comments(text: str) -> list[int]:
+    """Find the comments in a TSX file.
+
+    TSX is its own dialect rather than TypeScript with elements in it, because
+    the two read the same characters differently: `<string>y` is a type
+    assertion in TypeScript and an element in TSX.
+
+    Args:
+        text: The file content.
+
+    Returns:
+        The lines a comment starts on.
+    """
+    return parsed_comments(text, TSX)
 
 
 def python_comments(text: str) -> list[int]:
@@ -213,13 +181,17 @@ GENERATED_FILES = (".terraform.lock.hcl",)
 
 READERS: dict[str, Callable[[str], list[int]]] = {
     ".cjs": javascript_comments,
+    ".cts": typescript_comments,
     ".hcl": hcl_comments,
     ".jsx": javascript_comments,
     ".js": javascript_comments,
     ".mjs": javascript_comments,
+    ".mts": typescript_comments,
     ".py": python_comments,
     ".tf": hcl_comments,
     ".tfvars": hcl_comments,
+    ".ts": typescript_comments,
+    ".tsx": tsx_comments,
     ".yaml": yaml_comments,
     ".yml": yaml_comments,
 }

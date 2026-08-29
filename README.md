@@ -65,8 +65,18 @@ assert-no-comments .github/workflows etc lib scripts src test \
 | --- | --- | --- |
 | Python | `.py` | `#`, and any module, class or function docstring |
 | YAML | `.yml`, `.yaml` | `#` |
-| OpenTofu | `.tf`, `.tfvars`, `.hcl` | `#`, `//`, and `/* */` blocks |
-| JavaScript | `.js`, `.jsx`, `.mjs`, `.cjs` | `//`, and `/* */` blocks |
+| OpenTofu | `.tf`, `.tfvars`, `.hcl` | `#`, `//`, and `/* */` |
+| JavaScript | `.js`, `.mjs`, `.cjs`, `.jsx` | `//`, `/* */`, `{/* */}` |
+| TypeScript | `.ts`, `.mts`, `.cts` | `//`, and `/* */` |
+| TSX | `.tsx` | `//`, `/* */`, `{/* */}` |
+
+`{/* */}` is the third form because it is the only one JSX has among
+the children of an element: a bare `/* */` there is text that renders.
+
+`.tsx` is its own row rather than a fourth suffix on the TypeScript one
+because the two are different dialects: `<string>y` asserts a type in
+one and opens an element in the other, and a reader that guessed wrong
+would read past the rest of the line.
 
 A file whose suffix names none of those is left alone, so a `.md` file
 is never read: prose is the content of a markdown file rather than a
@@ -77,17 +87,23 @@ A docstring counts as a comment. It is the same prose in the same place,
 and the fact that a language keeps it in `__doc__` does not make it any
 more likely to still be true.
 
-Each reader knows the difference between a marker and a character that
-merely looks like one. A `#` inside a Python string, a YAML quoted
-scalar or a block scalar is content. A `//` inside a JavaScript string,
-template literal or regular expression is content, and a `/` after a
-name is division rather than the start of a pattern.
+Every language is read by its own grammar, so nothing here decides what
+a character is by looking at the characters beside it: Python through
+`tokenize` and `ast`, YAML through the `yaml` scanner, and JavaScript,
+TypeScript, TSX and OpenTofu through their tree-sitter grammars. A `#`
+inside a Python string, a YAML quoted scalar or block scalar, or an HCL
+heredoc is content. A `//` inside a JavaScript string, template literal
+or regular expression is content, a `/` after a name is division, the
+`/` closing a JSX tag is neither, and text between JSX tags renders on
+the page rather than commenting on it. Each of those is a question about
+where in the file the character sits, which is what a parser knows and a
+marker table does not.
 
-Python is read with `tokenize` and `ast`, and YAML with the `yaml`
-scanner, so a file that will not parse is an error rather than a file
-with nothing in it. The marker languages are read character by character
-and never fail: an unclosed string swallows the rest of the file, and an
-unclosed block comment is still reported where it opened.
+A Python or YAML file that will not parse is an error rather than a file
+with nothing in it. A JavaScript, TypeScript, TSX or OpenTofu file that
+will not parse is read as far as its grammar gets: the comments it can
+still recognise are reported, so a broken file gives findings rather
+than an exit code of 2.
 
 ## What is walked
 

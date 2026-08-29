@@ -5,7 +5,9 @@ from __future__ import annotations
 from test.samples import (
     BROKEN_PYTHON,
     CLEAN_PROJECT,
+    COMMENTED_TSX,
     COMMENTED_WORKFLOW,
+    COMPONENT,
     EXCLUDE_VENDORED,
     FULL_RUN,
     PROJECT,
@@ -69,6 +71,20 @@ class TestTheCommandAsAStepRunsIt:
         """A comment in a workflow file is a finding too."""
         write_tree({**CLEAN_PROJECT, WORKFLOW: COMMENTED_WORKFLOW})
         assert WORKFLOW in run_cli_subprocess(FULL_RUN)[1]
+
+    def test_reads_a_typescript_component(
+        self, write_tree: WriteTree, run_cli_subprocess: RunCli
+    ) -> None:
+        """A comment in a TSX file is a finding too."""
+        write_tree({**CLEAN_PROJECT, COMPONENT: COMMENTED_TSX})
+        assert COMPONENT in run_cli_subprocess(FULL_RUN)[1]
+
+    def test_counts_every_comment_a_component_carries(
+        self, write_tree: WriteTree, run_cli_subprocess: RunCli
+    ) -> None:
+        """The braced comment, the line comment and the block are three findings."""
+        write_tree({**CLEAN_PROJECT, COMPONENT: COMMENTED_TSX})
+        assert run_cli_subprocess([*FULL_RUN, "--count"])[1] == "3\n"
 
     def test_leaves_the_vendored_javascript_alone(
         self, write_tree: WriteTree, run_cli_subprocess: RunCli
