@@ -86,7 +86,7 @@ jobs:
           src
           --search-in src
           --search-in test
-          --search-in lib/python
+          --search-in lib
           --verbose
   e2e-tests:
     runs-on: ubuntu-latest
@@ -101,7 +101,7 @@ jobs:
         run: pip install pytest -e .
       - name: E2E tests
         run: >-
-          PYTHONPATH=lib/python
+          PYTHONPATH=lib
           python3 -m pytest test/e2e/ --verbose --pythonwarnings=error
   integration-tests:
     runs-on: ubuntu-latest
@@ -116,7 +116,7 @@ jobs:
         run: pip install pytest pytest-cov -e .
       - name: Integration tests
         run: |
-          PYTHONPATH=lib/python python3 -m pytest test/integration/ \
+          PYTHONPATH=lib python3 -m pytest test/integration/ \
             --verbose --pythonwarnings=error \
             --cov=assert_no_comments \
             --cov-branch \
@@ -149,7 +149,7 @@ jobs:
       - name: jscpd (test)
         run: >-
           jscpd --pattern "**/*.py" --threshold 0 --reporters console
-          test/ lib/python/
+          test/ lib/
   mypy-src:
     runs-on: ubuntu-latest
     steps:
@@ -176,8 +176,8 @@ jobs:
         run: pip install mypy pytest types-PyYAML -e .
       - name: mypy (test)
         run: >-
-          MYPYPATH=lib/python
-          python3 -m mypy --explicit-package-bases test/ lib/python/
+          MYPYPATH=lib
+          python3 -m mypy --explicit-package-bases test/ lib/
   pylint-src:
     runs-on: ubuntu-latest
     steps:
@@ -210,8 +210,8 @@ jobs:
         run: pip install pylint pytest -e .
       - name: pylint (test)
         run: >-
-          PYTHONPATH=lib/python
-          python3 -m pylint --recursive=y test/ lib/python/
+          PYTHONPATH=lib
+          python3 -m pylint --recursive=y test/ lib/
           --disable=missing-class-docstring
           --disable=missing-function-docstring
           --disable=missing-module-docstring
@@ -284,7 +284,7 @@ jobs:
         run: pip install pytest pytest-cov -e .
       - name: Unit tests
         run: |
-          PYTHONPATH=lib/python python3 -m pytest test/unit/ \
+          PYTHONPATH=lib python3 -m pytest test/unit/ \
             --verbose --pythonwarnings=error \
             --cov=assert_no_comments \
             --cov-branch \

@@ -8,8 +8,7 @@ from typing import TYPE_CHECKING
 from unittest.mock import patch
 
 import pytest
-from test_support.loader import read_sample
-from test_support.project import (
+from test_support import (
     CLEAN_PROJECT,
     COMPONENT,
     EXCLUDE_VENDORED,
@@ -19,6 +18,7 @@ from test_support.project import (
     SOURCE,
     VENDORED,
     WORKFLOW,
+    read_sample,
 )
 
 from assert_no_comments.cli import (
