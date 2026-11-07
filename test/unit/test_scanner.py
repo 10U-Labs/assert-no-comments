@@ -17,6 +17,7 @@ from assert_no_comments.scanner import (
     parsed_comments,
     python_comments,
     reader_for,
+    shell_comments,
     tsx_comments,
     typescript_comments,
     yaml_comments,
@@ -41,6 +42,8 @@ CPP_SUFFIXES = (
     ".hxx",
     ".tcc",
 )
+
+SHELL_SUFFIXES = (".bash", ".sh")
 
 
 def sample(name: str) -> str:
@@ -323,6 +326,41 @@ class TestCComments:
         assert c_comments(sample("c/comment_beside_cpp_keyword_name")) == [1]
 
 
+class TestShellComments:
+    def test_a_line_comment_is_reported(self) -> None:
+        assert shell_comments(sample("shell/line_comment_reported")) == [2]
+
+    def test_a_comment_after_a_command_on_the_same_line_is_reported(self) -> None:
+        assert shell_comments(sample("shell/comment_after_command_reported")) == [1]
+
+    def test_a_shebang_on_the_first_line_is_not_reported(self) -> None:
+        assert shell_comments(sample("shell/shebang_spared")) == []
+
+    def test_a_shebang_on_the_second_line_is_reported(self) -> None:
+        assert shell_comments(sample("shell/shebang_on_second_line_reported")) == [2]
+
+    def test_a_shebang_after_a_space_is_reported(self) -> None:
+        assert shell_comments(sample("shell/indented_shebang_reported")) == [1]
+
+    def test_a_first_line_with_a_space_before_the_bang_is_reported(self) -> None:
+        assert shell_comments(sample("shell/spaced_bang_reported")) == [1]
+
+    def test_a_hash_inside_a_double_quoted_string_is_not_reported(self) -> None:
+        assert shell_comments(sample("shell/hash_in_double_quotes")) == []
+
+    def test_a_hash_inside_a_single_quoted_string_is_not_reported(self) -> None:
+        assert shell_comments(sample("shell/hash_in_single_quotes")) == []
+
+    def test_a_hash_inside_a_word_is_not_reported(self) -> None:
+        assert shell_comments(sample("shell/hash_in_word")) == []
+
+    def test_a_hash_inside_a_here_document_is_not_reported(self) -> None:
+        assert shell_comments(sample("shell/hash_in_here_document")) == []
+
+    def test_a_hash_inside_a_parameter_expansion_is_not_reported(self) -> None:
+        assert shell_comments(sample("shell/hash_in_parameter_expansion")) == []
+
+
 class TestParsedComments:
     def test_a_grammar_named_directly_reads_its_comments(self) -> None:
         assert parsed_comments(sample("parsed/grammar_named_directly_reads_comments"), HCL) == [1]
@@ -374,6 +412,10 @@ class TestReaderFor:
 
     def test_a_c_file_does_not_get_the_cpp_reader(self) -> None:
         assert reader_for("src/counting.c") is not cpp_comments
+
+    @pytest.mark.parametrize("suffix", SHELL_SUFFIXES)
+    def test_a_shell_suffix_gets_the_shell_reader(self, suffix: str) -> None:
+        assert reader_for(f"scripts/release{suffix}") is shell_comments
 
     def test_a_lock_file_gets_no_reader(self) -> None:
         assert reader_for("infra/.terraform.lock.hcl") is None

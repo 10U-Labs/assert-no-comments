@@ -10,6 +10,7 @@ from test_trees import (
     FULL_RUN,
     NATIVE,
     PROJECT,
+    SCRIPT,
     SOURCE,
     WORKFLOW,
 )
@@ -70,6 +71,12 @@ class TestTheCommandAsAStepRunsIt:
     ) -> None:
         write_tree({**CLEAN_PROJECT, COMPONENT: "project/commented_tsx"})
         assert run_cli_subprocess([*FULL_RUN, "--count"])[1] == "3\n"
+
+    def test_reports_a_shell_comment_and_not_the_shebang(
+        self, write_tree: WriteTree, run_cli_subprocess: RunCli
+    ) -> None:
+        write_tree({**CLEAN_PROJECT, SCRIPT: "project/commented_shell"})
+        assert run_cli_subprocess([*FULL_RUN, "--count"])[1] == "1\n"
 
     def test_leaves_the_vendored_javascript_alone(
         self, write_tree: WriteTree, run_cli_subprocess: RunCli

@@ -8,6 +8,7 @@ import tokenize
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
+import tree_sitter_bash
 import tree_sitter_c
 import tree_sitter_cpp
 import tree_sitter_hcl
@@ -31,6 +32,9 @@ NAMESPACE_NODE = "namespace_definition"
 
 NAMESPACE_END = b"// namespace"
 
+SHEBANG = b"#!"
+
+BASH = Language(tree_sitter_bash.language())
 C = Language(tree_sitter_c.language())
 CPP = Language(tree_sitter_cpp.language())
 HCL = Language(tree_sitter_hcl.language())
@@ -73,6 +77,10 @@ def closes_its_namespace(comment: Node, source: bytes) -> bool:
     ending = NAMESPACE_END if name is None else NAMESPACE_END + b" " + _text_of(name, source)
     same_row = definition.end_point[0] == comment.start_point[0]
     return same_row and _text_of(comment, source) == ending
+
+
+def is_a_shebang(comment: Node, source: bytes) -> bool:
+    return comment.start_byte == 0 and _text_of(comment, source).startswith(SHEBANG)
 
 
 def parsed_comments(
@@ -119,6 +127,10 @@ def tsx_comments(text: str) -> list[int]:
     return parsed_comments(text, TSX)
 
 
+def shell_comments(text: str) -> list[int]:
+    return parsed_comments(text, BASH, spared=is_a_shebang)
+
+
 def python_comments(text: str) -> list[int]:
     places = [
         token.start[0]
@@ -153,6 +165,7 @@ READERS: dict[str, Callable[[str], list[int]]] = {
     ".CPP": cpp_comments,
     ".H": cpp_comments,
     ".HPP": cpp_comments,
+    ".bash": shell_comments,
     ".c": c_comments,
     ".c++": cpp_comments,
     ".cc": cpp_comments,
@@ -173,6 +186,7 @@ READERS: dict[str, Callable[[str], list[int]]] = {
     ".mjs": javascript_comments,
     ".mts": typescript_comments,
     ".py": python_comments,
+    ".sh": shell_comments,
     ".tcc": cpp_comments,
     ".tf": hcl_comments,
     ".tfvars": hcl_comments,

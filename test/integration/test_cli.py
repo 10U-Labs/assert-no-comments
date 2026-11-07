@@ -19,6 +19,7 @@ from test_trees import (
     NATIVE,
     NOTES,
     PROJECT,
+    SCRIPT,
     SOURCE,
     VENDORED,
     WORKFLOW,
@@ -472,6 +473,12 @@ class TestTheCommandOverATree:
     ) -> None:
         write_tree({EXTENSION: "c/reports_both_comments"})
         assert run_cli(["src"])[1] == _printed([Finding(EXTENSION, 1), Finding(EXTENSION, 2)])
+
+    def test_reports_the_comment_in_a_shell_script_and_not_its_shebang(
+        self, write_tree: WriteTree, run_cli: RunCli
+    ) -> None:
+        write_tree({SCRIPT: "shell/reports_the_comment_not_the_shebang"})
+        assert run_cli(["src"])[1] == _printed([Finding(SCRIPT, 3)])
 
     def test_leaves_the_vendored_javascript_alone(
         self, write_tree: WriteTree, run_cli: RunCli
