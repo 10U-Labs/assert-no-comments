@@ -164,3 +164,9 @@ class TestTheCommandOverEachLanguage:
     ) -> None:
         write_tree({**CLEAN_PROJECT, DESIGN: "project/commented_systemverilog"})
         assert DESIGN in run_cli_subprocess(FULL_RUN)[1]
+
+    def test_reports_a_comment_in_a_workflow_run_script(
+        self, write_tree: WriteTree, run_cli_subprocess: RunCli
+    ) -> None:
+        write_tree({**CLEAN_PROJECT, WORKFLOW: "project/commented_run_script"})
+        assert run_cli_subprocess([*FULL_RUN, "--count"])[1] == "1\n"

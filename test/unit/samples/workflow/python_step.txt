@@ -1,0 +1,10 @@
+---
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          import sys
+          if sys.argv:  # why
+              print(1)
+        shell: python

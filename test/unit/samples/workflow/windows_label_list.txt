@@ -1,0 +1,7 @@
+---
+jobs:
+  build:
+    runs-on: [self-hosted, Windows]
+    steps:
+      - run: |
+          # why

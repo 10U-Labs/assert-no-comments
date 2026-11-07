@@ -1,0 +1,9 @@
+---
+name: Setup
+runs:
+  steps:
+    - run: |
+        # why
+        make
+      shell: bash
+  using: composite

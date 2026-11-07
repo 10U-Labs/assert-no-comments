@@ -12,6 +12,7 @@ from test_read_sample import read_sample
 from test_trees import (
     CLEAN_PROJECT,
     COMPONENT,
+    CONFIG,
     DESIGN,
     EXCLUDE_VENDORED,
     EXTENSION,
@@ -558,6 +559,17 @@ class TestTheCommandOverEachLanguage:
         )
         found = [Finding(DESIGN, 2), Finding(DESIGN, 3), Finding(LEGACY, 1)]
         assert run_cli(["src"])[1] == _printed(found)
+
+    def test_reports_a_run_script_comment_in_a_workflow_and_not_in_other_yaml(
+        self, write_tree: WriteTree, run_cli: RunCli
+    ) -> None:
+        write_tree(
+            {
+                WORKFLOW: "workflow/run_script_comment",
+                CONFIG: "workflow/run_script_comment",
+            }
+        )
+        assert run_cli([".github", "etc"])[1] == _printed([Finding(WORKFLOW, 8)])
 
 
 class TestTheCommandWhenATreeWillNotRead:

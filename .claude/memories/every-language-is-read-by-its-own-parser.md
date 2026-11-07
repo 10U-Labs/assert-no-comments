@@ -12,6 +12,13 @@ reads, never a walk over the characters. Python goes through `tokenize` and
 `ast`, YAML through `yaml.scan`, and JavaScript, TypeScript, TSX, HCL, C, C++,
 Bash and SystemVerilog through their tree-sitter grammars.
 
+A workflow's `run:` script is the one place the text is changed before a grammar
+sees it: `workflow_comments` replaces each `${{ }}` expression with underscores
+of the same length. That is not a marker table. GitHub performs the same
+substitution on the text before any shell parses it, and without it
+`tree-sitter-bash` loses a comment that follows an expression on its line and
+`ast` rejects a Python step that assigns one.
+
 The rule was bought rather than chosen. `marked_comments` walked a file
 character by character and asked `_opens_a_pattern` whether a `/` began a
 regular expression, guessing from the last non-space character before it. `<`

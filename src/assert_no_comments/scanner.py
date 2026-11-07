@@ -4,8 +4,11 @@ import ast
 import bisect
 import io
 import os
+import re
+import textwrap
 import tokenize
 from dataclasses import dataclass
+from pathlib import PurePath
 from typing import TYPE_CHECKING
 
 import tree_sitter_bash
@@ -19,7 +22,7 @@ import yaml
 from tree_sitter import Language, Parser
 
 if TYPE_CHECKING:
-    from collections.abc import Callable
+    from collections.abc import Callable, Iterator
 
     from tree_sitter import Node
 
@@ -36,6 +39,22 @@ NAMESPACE_END = b"// namespace"
 SHEBANG = "#!"
 
 FIRST_COLUMN_OF_FIRST_LINE = (1, 0)
+
+WORKFLOW_DIRECTORY = (".github", "workflows")
+
+ACTION_FILES = ("action.yaml", "action.yml")
+
+YAML_SUFFIXES = (".yaml", ".yml")
+
+BLOCK_STYLES = frozenset({"|", ">"})
+
+EXPRESSION = re.compile(r"\$\{\{.*?\}\}")
+
+WINDOWS_LABEL = "windows"
+
+WINDOWS_SHELL = "pwsh"
+
+DEFAULT_SHELL = "bash"
 
 BASH = Language(tree_sitter_bash.language())
 C = Language(tree_sitter_c.language())
@@ -170,6 +189,75 @@ def yaml_comments(text: str) -> list[int]:
     )
 
 
+def _entry(node: yaml.Node | None, key: str) -> yaml.Node | None:
+    if isinstance(node, yaml.MappingNode):
+        entries: list[tuple[yaml.Node, yaml.Node]] = node.value
+        for name, value in entries:
+            if name.value == key:
+                return value
+    return None
+
+
+def _members(node: yaml.Node | None) -> list[yaml.Node]:
+    if isinstance(node, yaml.MappingNode):
+        return [value for _, value in node.value]
+    if isinstance(node, yaml.SequenceNode):
+        return list(node.value)
+    return []
+
+
+def _scalar(node: yaml.Node | None) -> str:
+    return str(node.value) if isinstance(node, yaml.ScalarNode) else ""
+
+
+def _default_shell(node: yaml.Node | None) -> str:
+    return _scalar(_entry(_entry(_entry(node, "defaults"), "run"), "shell"))
+
+
+def _runner_shell(job: yaml.Node) -> str:
+    runs_on = _entry(job, "runs-on")
+    labels = [_scalar(runs_on), *(_scalar(label) for label in _members(runs_on))]
+    windows = any(label.lower().startswith(WINDOWS_LABEL) for label in labels)
+    return WINDOWS_SHELL if windows else DEFAULT_SHELL
+
+
+def _run_steps(owner: yaml.Node | None, shell: str) -> Iterator[tuple[yaml.ScalarNode, str]]:
+    for step in _members(_entry(owner, "steps")):
+        run = _entry(step, "run")
+        if isinstance(run, yaml.ScalarNode) and run.style in BLOCK_STYLES:
+            yield run, _scalar(_entry(step, "shell")) or shell
+
+
+def _run_scripts(document: yaml.Node) -> Iterator[tuple[yaml.ScalarNode, str]]:
+    workflow_shell = _default_shell(document)
+    for job in _members(_entry(document, "jobs")):
+        yield from _run_steps(job, _default_shell(job) or workflow_shell or _runner_shell(job))
+    yield from _run_steps(_entry(document, "runs"), DEFAULT_SHELL)
+
+
+def _masked(expression: re.Match[str]) -> str:
+    return "_" * len(expression.group())
+
+
+SCRIPT_READERS: dict[str, Callable[[str], list[int]]] = {
+    "bash": shell_comments,
+    "python": python_comments,
+    "sh": shell_comments,
+}
+
+
+def workflow_comments(text: str) -> list[int]:
+    places = yaml_comments(text)
+    for document in yaml.compose_all(text):
+        for run, shell in _run_scripts(document):
+            reader = SCRIPT_READERS.get(next(iter(shell.split()), ""))
+            if reader is not None:
+                script = text[run.start_mark.index : run.end_mark.index].partition("\n")[2]
+                rows = reader(textwrap.dedent(EXPRESSION.sub(_masked, script)))
+                places.extend(run.start_mark.line + 1 + row for row in rows)
+    return sorted(set(places))
+
+
 GENERATED_FILES = (".terraform.lock.hcl",)
 
 READERS: dict[str, Callable[[str], list[int]]] = {
@@ -213,9 +301,17 @@ READERS: dict[str, Callable[[str], list[int]]] = {
 }
 
 
+def _is_a_workflow_or_an_action(path: str) -> bool:
+    place = PurePath(path)
+    in_workflows = place.parent.parts[-2:] == WORKFLOW_DIRECTORY
+    return place.name in ACTION_FILES or (in_workflows and place.suffix in YAML_SUFFIXES)
+
+
 def reader_for(path: str) -> Callable[[str], list[int]] | None:
     if os.path.basename(path) in GENERATED_FILES:
         return None
+    if _is_a_workflow_or_an_action(path):
+        return workflow_comments
     return READERS.get(os.path.splitext(path)[1])
 
 

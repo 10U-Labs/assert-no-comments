@@ -1,0 +1,12 @@
+---
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: |
+          # why
+          make ${{ inputs.target }}
+      - run: |
+          # left to pwsh
+        shell: pwsh

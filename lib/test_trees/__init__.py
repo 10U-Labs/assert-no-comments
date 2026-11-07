@@ -9,6 +9,7 @@ SCRIPT = "src/build.sh"
 DESIGN = "src/rtl/counter.sv"
 LEGACY = "src/rtl/legacy.v"
 WORKFLOW = ".github/workflows/release.yml"
+CONFIG = "etc/config.yml"
 VENDORED = "src/www/spa/vendor/leaflet.js"
 NOTES = "src/notes.md"
 

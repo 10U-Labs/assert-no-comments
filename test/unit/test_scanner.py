@@ -21,6 +21,7 @@ from assert_no_comments.scanner import (
     systemverilog_comments,
     tsx_comments,
     typescript_comments,
+    workflow_comments,
     yaml_comments,
 )
 
@@ -47,6 +48,28 @@ CPP_SUFFIXES = (
 SHELL_SUFFIXES = (".bash", ".sh")
 
 SYSTEMVERILOG_SUFFIXES = (".sv", ".svh", ".v", ".vh")
+
+WORKFLOW_PATHS = (
+    ".github/workflows/build.yml",
+    ".github/workflows/build.yaml",
+    "action.yml",
+    "action.yaml",
+    ".github/actions/setup/action.yml",
+)
+
+PLAIN_YAML_PATHS = (
+    "etc/config.yml",
+    ".github/dependabot.yml",
+    ".github/workflows/templates/build.yml",
+)
+
+BASH_OR_SH_STEPS = ("step_shell_bash", "step_shell_custom_bash", "step_shell_sh")
+
+UNREAD_SHELL_STEPS = ("step_shell_cmd", "step_shell_pwsh")
+
+WINDOWS_RUNNERS = ("windows_label_list", "windows_runner")
+
+OTHER_RUNNERS = ("expression_runner", "linux_runner")
 
 
 def sample(name: str) -> str:
@@ -115,6 +138,78 @@ class TestYamlComments:
 
     def test_a_file_with_nothing_in_it_reports_nothing(self) -> None:
         assert yaml_comments("") == []
+
+
+def _workflow(name: str) -> list[int]:
+    return workflow_comments(sample(f"workflow/{name}"))
+
+
+class TestWorkflowComments:
+    def test_a_yaml_comment_is_reported(self) -> None:
+        assert _workflow("yaml_comment_reported") == [4]
+
+    def test_a_file_with_nothing_in_it_reports_nothing(self) -> None:
+        assert workflow_comments("") == []
+
+    def test_a_comment_line_in_a_literal_run_script_is_reported(self) -> None:
+        assert _workflow("literal_run_comment_line") == [7]
+
+    def test_a_comment_after_a_command_in_a_run_script_is_reported(self) -> None:
+        assert _workflow("comment_after_command") == [7]
+
+    def test_a_comment_line_in_a_folded_run_script_is_reported(self) -> None:
+        assert _workflow("folded_run_comment_line") == [8]
+
+    def test_a_comment_line_in_a_composite_action_step_is_reported(self) -> None:
+        assert _workflow("composite_action_step") == [6]
+
+    def test_a_comment_after_an_expression_is_reported(self) -> None:
+        assert _workflow("comment_after_expression") == [7]
+
+    def test_a_python_step_is_read_as_python(self) -> None:
+        assert _workflow("python_step") == [8]
+
+    def test_an_expression_does_not_stop_a_python_step_from_parsing(self) -> None:
+        assert _workflow("python_step_with_expression") == [8]
+
+    def test_markers_the_shell_reads_as_content_are_not_reported(self) -> None:
+        assert _workflow("markers_the_shell_reads_as_content") == []
+
+    def test_a_block_scalar_under_another_key_is_not_read(self) -> None:
+        assert _workflow("block_scalar_under_another_key") == []
+
+    def test_a_quoted_run_value_is_not_read(self) -> None:
+        assert _workflow("quoted_run_value") == []
+
+
+class TestWorkflowShells:
+    @pytest.mark.parametrize("name", BASH_OR_SH_STEPS)
+    def test_a_step_whose_shell_is_bash_or_sh_is_read(self, name: str) -> None:
+        assert _workflow(name) == [7]
+
+    def test_a_job_default_shell_is_read_on_a_windows_runner(self) -> None:
+        assert _workflow("job_default_shell_on_windows") == [10]
+
+    def test_a_workflow_default_shell_is_read_on_a_windows_runner(self) -> None:
+        assert _workflow("workflow_default_shell_on_windows") == [10]
+
+    def test_a_job_default_is_taken_before_the_workflow_default(self) -> None:
+        assert _workflow("job_default_before_workflow_default") == [13]
+
+    def test_a_step_shell_is_taken_before_the_defaults(self) -> None:
+        assert _workflow("step_shell_before_defaults") == [13]
+
+    @pytest.mark.parametrize("name", UNREAD_SHELL_STEPS)
+    def test_a_shell_with_no_reader_is_not_read(self, name: str) -> None:
+        assert _workflow(name) == []
+
+    @pytest.mark.parametrize("name", WINDOWS_RUNNERS)
+    def test_a_script_with_no_shell_on_a_windows_runner_is_not_read(self, name: str) -> None:
+        assert _workflow(name) == []
+
+    @pytest.mark.parametrize("name", OTHER_RUNNERS)
+    def test_a_script_with_no_shell_on_any_other_runner_is_read(self, name: str) -> None:
+        assert _workflow(name) == [7]
 
 
 class TestHclComments:
@@ -505,6 +600,16 @@ class TestReaderFor:
         assert reader_for("notes.txt") is None
 
 
+class TestReaderForGithubActions:
+    @pytest.mark.parametrize("path", WORKFLOW_PATHS)
+    def test_a_workflow_or_an_action_gets_the_workflow_reader(self, path: str) -> None:
+        assert reader_for(path) is workflow_comments
+
+    @pytest.mark.parametrize("path", PLAIN_YAML_PATHS)
+    def test_any_other_yaml_file_gets_the_yaml_reader(self, path: str) -> None:
+        assert reader_for(path) is yaml_comments
+
+
 class TestCommentsIn:
     def test_a_finding_names_the_file_and_the_line(self) -> None:
         found = comments_in("src/counting.py", sample("comments_in/finding_names"))
@@ -520,6 +625,11 @@ class TestCommentsIn:
     def test_a_yaml_file_that_will_not_parse_is_unreadable(self) -> None:
         with pytest.raises(Unreadable):
             comments_in("etc/config.yml", sample("comments_in/yaml_file_will_parse_unreadable"))
+
+    def test_a_workflow_whose_python_step_will_not_parse_is_unreadable(self) -> None:
+        text = sample("comments_in/workflow_python_step_will_not_parse")
+        with pytest.raises(Unreadable):
+            comments_in(".github/workflows/build.yml", text)
 
 
 class TestFinding:

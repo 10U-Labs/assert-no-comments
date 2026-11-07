@@ -1,0 +1,14 @@
+---
+defaults:
+  run:
+    shell: pwsh
+jobs:
+  build:
+    defaults:
+      run:
+        shell: pwsh
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          # why
+        shell: bash

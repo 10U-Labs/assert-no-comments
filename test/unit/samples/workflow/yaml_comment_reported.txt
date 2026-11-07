@@ -1,0 +1,5 @@
+---
+jobs:
+  build:
+    # why
+    runs-on: ubuntu-latest

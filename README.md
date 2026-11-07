@@ -63,6 +63,7 @@ assert-no-comments .github/workflows etc lib scripts src test \
 | --- | --- | --- |
 | Python | `.py` | `#`, except a `#!` first line, and any module, class or function docstring |
 | YAML | `.yml`, `.yaml` | `#` |
+| GitHub Actions | `.yml` and `.yaml` in `.github/workflows`, `action.yml`, `action.yaml` | `#`, and each `run:` script's comments in its shell's language |
 | OpenTofu | `.tf`, `.tfvars`, `.hcl` | `#`, `//`, and `/* */` |
 | JavaScript | `.js`, `.mjs`, `.cjs`, `.jsx` | `//`, `/* */`, `{/* */}` |
 | TypeScript | `.ts`, `.mts`, `.cts` | `//`, and `/* */` |
@@ -92,6 +93,27 @@ into itself in 2009. A Verilog file that uses a later SystemVerilog keyword such
 as `logic` as a name will not parse, and the comments the grammar still
 recognises are reported. `.map` stays out, though the grammar reads a library
 map file, because `.map` is also the suffix of a JavaScript source map.
+
+A workflow is a `.yml` or `.yaml` file directly inside a `.github/workflows`
+directory, and an action is a file named `action.yml` or `action.yaml`. Both are
+read as YAML, and each step's `run:` script is read again in the language of the
+shell GitHub hands it to. A script whose shell's first word is `bash` or `sh` is
+read as shell, one whose first word is `python` is read as Python, and one under
+any other shell is left alone.
+
+That shell is the one GitHub picks: the step's `shell`, else the job's
+`defaults.run.shell`, else the workflow's, else the runner's default. The
+default is `pwsh` when a label in the job's `runs-on` starts with `windows`, and
+`bash` on any other runner, including one that `runs-on` names by an expression.
+
+GitHub substitutes each `${{ }}` expression into the script's text before the
+shell runs it, so each is read as a run of underscores of the same length, and a
+comment after one on the same line is still found. Only a `run:` written as a
+block scalar, `|` or `>`, is read as a script. A plain one cannot hold a
+comment, since YAML ends it at a `#` after a space and reports that `#` itself,
+and a quoted one is not read yet, which is [#26][quoted-run].
+
+[quoted-run]: https://github.com/10U-Labs/assert-no-comments/issues/26
 
 A file whose suffix names none of those is left alone, so a `.md` file is never
 read: prose is the content of a markdown file rather than a gloss on a line of
@@ -138,10 +160,11 @@ where in the file the character sits, which is what a parser knows and a marker
 table does not.
 
 A Python or YAML file that will not parse is an error rather than a file with
-nothing in it. A JavaScript, TypeScript, TSX, OpenTofu, C, C++, shell or
-SystemVerilog file that will not parse is read as far as its grammar gets: the
-comments it can still recognise are reported, so a broken file gives findings
-rather than an exit code of 2.
+nothing in it, and so is a workflow or an action whose `python` step will not
+parse. A JavaScript, TypeScript, TSX, OpenTofu, C, C++, shell or SystemVerilog
+file that will not parse is read as far as its grammar gets: the comments it can
+still recognise are reported, so a broken file gives findings rather than an
+exit code of 2.
 
 One limit belongs to the C and C++ grammars rather than to this tool. They end
 the body of a `#define` at the first `/*`, even one inside a string literal, so

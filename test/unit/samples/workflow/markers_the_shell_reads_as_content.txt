@@ -1,0 +1,11 @@
+---
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          echo "a # b" 'c # d'
+          echo a#b ${#x} ${x#y} ${x##y}
+          cat <<EOF
+          # not a comment
+          EOF

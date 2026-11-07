@@ -1,0 +1,10 @@
+---
+jobs:
+  build:
+    defaults:
+      run:
+        shell: bash
+    runs-on: windows-latest
+    steps:
+      - run: |
+          # why
