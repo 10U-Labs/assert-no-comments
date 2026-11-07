@@ -8,9 +8,10 @@ metadata:
 # CI is the source of truth
 
 Do not run tests, linters or builds locally to verify a change: write the code
-and the tests, commit, push to `main`, and read the run with `gh run list`, `gh
-run watch` and `gh run view --log-failed`. Reading the code locally is still
-right and cheap: `grep` and file reads are how the useful findings surface.
+and the tests, commit, push to `main`, and read the run with `gh run list` and
+`gh run view --log-failed`, waiting for it in the background per
+[[a-wait-runs-in-the-background]]. Reading the code locally is still right and
+cheap: `grep` and file reads are how the useful findings surface.
 
 **Why:** the jobs between them want Python, Node, four tree-sitter grammars and
 eight tools this machine does not otherwise carry, and CI checks every gate at

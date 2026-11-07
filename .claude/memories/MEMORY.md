@@ -9,6 +9,7 @@
 - [A rejected push is fixed forward](a-rejected-push-is-fixed-forward.md) — one follow-up commit answering every failed check, never an amend and force-push.
 - [CI is the source of truth](ci-is-the-source-of-truth.md) — never run tests, linters or builds locally; a green release run publishes.
 - [Find a run by the full hash](find-a-run-by-the-full-hash.md) — `gh run list --commit` lists nothing for a short hash; pass `git rev-parse HEAD`.
+- [A wait runs in the background](a-wait-runs-in-the-background.md) — a CI wait is run_in_background or Monitor, never a foreground sleep or gh run watch, so reminders fire.
 - [Path filters are not shell globs](path-filters-are-not-shell-globs.md) — `'**.md'` reaches files at the root; `**/*.md` does not.
 - [An issue states one solution](an-issue-states-one-solution.md) — Proposed Solution names one change, never a menu or a question.
 - [An issue has seven sections](an-issue-has-seven-sections.md) — Problem, the three test tiers, static analysis, regression tests, Proposed Solution.
