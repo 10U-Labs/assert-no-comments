@@ -13,6 +13,7 @@ from test_trees import (
     CLEAN_PROJECT,
     COMPONENT,
     EXCLUDE_VENDORED,
+    EXTENSION,
     FULL_RUN,
     HEADER,
     NATIVE,
@@ -58,6 +59,10 @@ def _lines(tmp_path: Path, name: str, content: str) -> list[int]:
     path = tmp_path / name
     path.write_text(content, encoding="utf-8")
     return [found.line_number for found in comments_in(str(path), path.read_text(encoding="utf-8"))]
+
+
+def _printed(found: list[Finding]) -> str:
+    return "".join(f"{finding}: {MESSAGE}\n" for finding in found)
 
 
 def _settings(**overrides: bool) -> argparse.Namespace:
@@ -460,7 +465,13 @@ class TestTheCommandOverATree:
             }
         )
         found = [Finding(NATIVE, 1), Finding(NATIVE, 3), Finding(NATIVE, 6), Finding(HEADER, 1)]
-        assert run_cli(["src"])[1] == "".join(f"{finding}: {MESSAGE}\n" for finding in found)
+        assert run_cli(["src"])[1] == _printed(found)
+
+    def test_reports_both_comments_a_c_file_carries(
+        self, write_tree: WriteTree, run_cli: RunCli
+    ) -> None:
+        write_tree({EXTENSION: "c/reports_both_comments"})
+        assert run_cli(["src"])[1] == _printed([Finding(EXTENSION, 1), Finding(EXTENSION, 2)])
 
     def test_leaves_the_vendored_javascript_alone(
         self, write_tree: WriteTree, run_cli: RunCli

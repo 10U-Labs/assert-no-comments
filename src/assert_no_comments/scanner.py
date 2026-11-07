@@ -8,6 +8,7 @@ import tokenize
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
+import tree_sitter_c
 import tree_sitter_cpp
 import tree_sitter_hcl
 import tree_sitter_javascript
@@ -30,6 +31,7 @@ NAMESPACE_NODE = "namespace_definition"
 
 NAMESPACE_END = b"// namespace"
 
+C = Language(tree_sitter_c.language())
 CPP = Language(tree_sitter_cpp.language())
 HCL = Language(tree_sitter_hcl.language())
 JAVASCRIPT = Language(tree_sitter_javascript.language())
@@ -93,6 +95,10 @@ def parsed_comments(
     return sorted(set(places))
 
 
+def c_comments(text: str) -> list[int]:
+    return parsed_comments(text, C)
+
+
 def cpp_comments(text: str) -> list[int]:
     return parsed_comments(text, CPP, spared=closes_its_namespace)
 
@@ -147,6 +153,7 @@ READERS: dict[str, Callable[[str], list[int]]] = {
     ".CPP": cpp_comments,
     ".H": cpp_comments,
     ".HPP": cpp_comments,
+    ".c": c_comments,
     ".c++": cpp_comments,
     ".cc": cpp_comments,
     ".cjs": javascript_comments,

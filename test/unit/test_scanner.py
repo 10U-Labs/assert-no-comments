@@ -9,6 +9,7 @@ from assert_no_comments.scanner import (
     HCL,
     Finding,
     Unreadable,
+    c_comments,
     comments_in,
     cpp_comments,
     hcl_comments,
@@ -287,6 +288,41 @@ class TestNamespaceEndComments:
         assert cpp_comments(sample("cpp/include_guard_end")) == [7]
 
 
+class TestCComments:
+    def test_a_line_comment_is_reported(self) -> None:
+        assert c_comments(sample("c/line_comment_reported")) == [2]
+
+    def test_a_block_comment_is_reported_at_its_first_line(self) -> None:
+        assert c_comments(sample("c/block_comment_reported_first_line")) == [2]
+
+    def test_a_comment_after_code_on_the_same_line_is_reported(self) -> None:
+        assert c_comments(sample("c/comment_after_code_reported")) == [2]
+
+    def test_a_comment_in_a_define_body_is_reported(self) -> None:
+        assert c_comments(sample("c/comment_in_define_body_reported")) == [2]
+
+    def test_a_comment_on_the_continued_line_of_a_define_is_reported(self) -> None:
+        assert c_comments(sample("c/comment_continued_define_line")) == [2]
+
+    def test_the_grammar_opens_a_block_comment_inside_a_define_string(self) -> None:
+        assert c_comments(sample("c/block_opened_in_define_string")) == [1]
+
+    def test_a_double_slash_inside_a_string_is_not_reported(self) -> None:
+        assert c_comments(sample("c/double_slash_in_string")) == []
+
+    def test_a_double_slash_inside_a_define_string_is_not_reported(self) -> None:
+        assert c_comments(sample("c/double_slash_in_define_string")) == []
+
+    def test_a_slash_character_literal_is_not_reported(self) -> None:
+        assert c_comments(sample("c/slash_character_literal")) == []
+
+    def test_a_block_opener_inside_a_string_is_not_reported(self) -> None:
+        assert c_comments(sample("c/block_opener_in_string")) == []
+
+    def test_a_comment_beside_a_name_cpp_reserves_is_reported(self) -> None:
+        assert c_comments(sample("c/comment_beside_cpp_keyword_name")) == [1]
+
+
 class TestParsedComments:
     def test_a_grammar_named_directly_reads_its_comments(self) -> None:
         assert parsed_comments(sample("parsed/grammar_named_directly_reads_comments"), HCL) == [1]
@@ -332,6 +368,9 @@ class TestReaderFor:
     @pytest.mark.parametrize("suffix", CPP_SUFFIXES)
     def test_a_cpp_suffix_gets_the_cpp_reader(self, suffix: str) -> None:
         assert reader_for(f"src/counting{suffix}") is cpp_comments
+
+    def test_a_c_file_gets_the_c_reader(self) -> None:
+        assert reader_for("src/counting.c") is c_comments
 
     def test_a_c_file_does_not_get_the_cpp_reader(self) -> None:
         assert reader_for("src/counting.c") is not cpp_comments

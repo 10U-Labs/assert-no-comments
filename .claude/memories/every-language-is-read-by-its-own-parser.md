@@ -9,8 +9,8 @@ metadata:
 
 A reader in `src/assert_no_comments/scanner.py` is a parser for the language it
 reads, never a walk over the characters. Python goes through `tokenize` and
-`ast`, YAML through `yaml.scan`, and JavaScript, TypeScript, TSX, HCL and C++
-through their tree-sitter grammars.
+`ast`, YAML through `yaml.scan`, and JavaScript, TypeScript, TSX, HCL, C and
+C++ through their tree-sitter grammars.
 
 The rule was bought rather than chosen. `marked_comments` walked a file
 character by character and asked `_opens_a_pattern` whether a `/` began a
@@ -40,8 +40,8 @@ Three things this costs, all worth knowing before changing it.
 
 A grammar per language is a dependency per language, and
 `tree-sitter-language-pack` is the one that looks like it would save that. It
-would ship 371 grammars to serve five, every one of them a version this package
-publishes and does not use, and the five it does use could no longer move
+would ship 371 grammars to serve six, every one of them a version this package
+publishes and does not use, and the six it does use could no longer move
 independently.
 
 A grammar's own defect stays. `tree-sitter-c`, which `tree-sitter-cpp` builds
@@ -54,9 +54,9 @@ An unterminated block comment is no longer reported. `marked_comments` reported
 it where it opened; a grammar sees an unterminated `/*` as text it cannot place
 and produces an `ERROR` node rather than a comment. The never-fail contract
 still holds — tree-sitter returns a tree instead of raising, so a broken
-JavaScript, TypeScript, HCL or C++ file gives findings rather than an exit code
-of 2 — but what a broken file yields is now whatever the grammar could still
-recognise. `test_a_file_that_will_not_parse_still_reports_what_it_can` in both
-the unit and integration tiers is where that is written down.
+JavaScript, TypeScript, HCL, C or C++ file gives findings rather than an exit
+code of 2 — but what a broken file yields is now whatever the grammar could
+still recognise. `test_a_file_that_will_not_parse_still_reports_what_it_can`
+in both the unit and integration tiers is where that is written down.
 
 This was written on 2026-08-29, when issues #1 and #2 were closed.
