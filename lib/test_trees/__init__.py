@@ -2,6 +2,8 @@ from __future__ import annotations
 
 SOURCE = "src/counting.py"
 COMPONENT = "src/App.tsx"
+NATIVE = "src/native/counting.cpp"
+HEADER = "src/native/counting.h"
 WORKFLOW = ".github/workflows/release.yml"
 VENDORED = "src/www/spa/vendor/leaflet.js"
 NOTES = "src/notes.md"

@@ -67,6 +67,7 @@ assert-no-comments .github/workflows etc lib scripts src test \
 | JavaScript | `.js`, `.mjs`, `.cjs`, `.jsx` | `//`, `/* */`, `{/* */}` |
 | TypeScript | `.ts`, `.mts`, `.cts` | `//`, and `/* */` |
 | TSX | `.tsx` | `//`, `/* */`, `{/* */}` |
+| C++ | `.cpp`, `.cc`, `.cxx`, `.c++`, `.cp`, `.C`, `.CPP`, `.tcc`, `.h`, `.hh`, `.hpp`, `.hxx`, `.h++`, `.hp`, `.H`, `.HPP` | `//`, and `/* */` |
 
 `{/* */}` is the third form because it is the only one JSX has among the
 children of an element: a bare `/* */` there is text that renders.
@@ -76,10 +77,25 @@ the two are different dialects: `<string>y` asserts a type in one and opens an
 element in the other, and a reader that guessed wrong would read past the rest
 of the line.
 
+`.h` is read as C++ because its suffix cannot say which of the two languages a
+header is written in. The C++ grammar extends the C one and both write comments
+the same way, so a C header parses as C++ unless it uses a C++ keyword as a
+name, and even then the comments the grammar still recognises are reported.
+
 A file whose suffix names none of those is left alone, so a `.md` file is never
 read: prose is the content of a markdown file rather than a gloss on a line of
 code. `.terraform.lock.hcl` is left alone too, because OpenTofu writes its
 header and nobody can delete it.
+
+The end comment clang-format writes on the brace that closes a C++ namespace,
+`// namespace a` after `namespace a` and `// namespace` after an anonymous one,
+is not reported either. clang-format writes it, writes it again when it is
+deleted from any namespace longer than one line, and corrects it when the
+namespace is renamed, so it cannot become untrue, and a tree formatted by
+clang-format could not otherwise pass both checks. Only that exact text on the
+brace's own line is spared. Every other form is reported, `/* namespace a */`
+and `//   namespace   a` included, and so is an end comment on the line below
+the brace or one that names a different namespace.
 
 A docstring counts as a comment. It is the same prose in the same place, and the
 fact that a language keeps it in `__doc__` does not make it any more likely to
@@ -87,19 +103,32 @@ still be true.
 
 Every language is read by its own grammar, so nothing here decides what a
 character is by looking at the characters beside it: Python through `tokenize`
-and `ast`, YAML through the `yaml` scanner, and JavaScript, TypeScript, TSX and
-OpenTofu through their tree-sitter grammars. A `#` inside a Python string, a
-YAML quoted scalar or block scalar, or an HCL heredoc is content. A `//` inside
-a JavaScript string, template literal or regular expression is content, a `/`
-after a name is division, the `/` closing a JSX tag is neither, and text between
-JSX tags renders on the page rather than commenting on it. Each of those is a
-question about where in the file the character sits, which is what a parser
-knows and a marker table does not.
+and `ast`, YAML through the `yaml` scanner, and JavaScript, TypeScript, TSX,
+OpenTofu and C++ through their tree-sitter grammars. A `#` inside a Python
+string, a YAML quoted scalar or block scalar, or an HCL heredoc is content. A
+`//` inside a JavaScript string, template literal or regular expression is
+content, a `/` after a name is division, the `/` closing a JSX tag is neither,
+and text between JSX tags renders on the page rather than commenting on it. A
+`//` inside a C++ string or raw string is content, and one in the body of a
+`#define` is a comment, which the grammar reads as part of the body and this
+tool finds by parsing the body again. Each of those is a question about where in
+the file the character sits, which is what a parser knows and a marker table
+does not.
 
 A Python or YAML file that will not parse is an error rather than a file with
-nothing in it. A JavaScript, TypeScript, TSX or OpenTofu file that will not
+nothing in it. A JavaScript, TypeScript, TSX, OpenTofu or C++ file that will not
 parse is read as far as its grammar gets: the comments it can still recognise
 are reported, so a broken file gives findings rather than an exit code of 2.
+
+One limit belongs to the C++ grammar rather than to this tool. It ends the body
+of a `#define` at the first `/*`, even one inside a string literal, so in
+`#define H "a /* b"` it opens a block comment that runs to the next `*/`
+anywhere in the file. That `#define` line is reported whether it carries a
+comment or not, and every comment between it and that `*/` is lost inside the
+false one. The rule comes from `tree-sitter-c`, which `tree-sitter-cpp` builds
+on, and is reported there as [tree-sitter/tree-sitter-c#335][preproc-arg].
+
+[preproc-arg]: https://github.com/tree-sitter/tree-sitter-c/issues/335
 
 ## What is walked
 

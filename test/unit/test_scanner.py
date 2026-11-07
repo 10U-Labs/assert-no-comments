@@ -10,6 +10,7 @@ from assert_no_comments.scanner import (
     Finding,
     Unreadable,
     comments_in,
+    cpp_comments,
     hcl_comments,
     javascript_comments,
     parsed_comments,
@@ -18,6 +19,26 @@ from assert_no_comments.scanner import (
     tsx_comments,
     typescript_comments,
     yaml_comments,
+)
+
+
+CPP_SUFFIXES = (
+    ".C",
+    ".CPP",
+    ".H",
+    ".HPP",
+    ".c++",
+    ".cc",
+    ".cp",
+    ".cpp",
+    ".cxx",
+    ".h",
+    ".h++",
+    ".hh",
+    ".hp",
+    ".hpp",
+    ".hxx",
+    ".tcc",
 )
 
 
@@ -163,6 +184,109 @@ class TestTsxComments:
         assert tsx_comments(sample("tsx/comment_braced_inside_element_reported")) == [3]
 
 
+class TestCppComments:
+    def test_a_line_comment_is_reported(self) -> None:
+        assert cpp_comments(sample("cpp/line_comment_reported")) == [2]
+
+    def test_a_block_comment_is_reported_at_its_first_line(self) -> None:
+        assert cpp_comments(sample("cpp/block_comment_reported_first_line")) == [2]
+
+    def test_a_triple_slash_comment_is_reported(self) -> None:
+        assert cpp_comments(sample("cpp/triple_slash_comment_reported")) == [1]
+
+    def test_a_documentation_block_is_reported(self) -> None:
+        assert cpp_comments(sample("cpp/documentation_block_reported")) == [2]
+
+    def test_a_comment_after_code_on_the_same_line_is_reported(self) -> None:
+        assert cpp_comments(sample("cpp/comment_after_code_reported")) == [2]
+
+    def test_a_comment_continued_over_a_backslash_is_reported_once(self) -> None:
+        assert cpp_comments(sample("cpp/comment_continued_over_backslash")) == [1]
+
+    def test_a_comment_in_a_define_body_is_reported(self) -> None:
+        assert cpp_comments(sample("cpp/comment_in_define_body_reported")) == [2]
+
+    def test_a_comment_on_the_continued_line_of_a_define_is_reported(self) -> None:
+        assert cpp_comments(sample("cpp/comment_continued_define_line")) == [2]
+
+    def test_a_block_comment_in_a_define_body_is_reported(self) -> None:
+        assert cpp_comments(sample("cpp/block_comment_in_define_body")) == [2]
+
+    def test_a_double_slash_inside_a_define_string_is_not_reported(self) -> None:
+        assert cpp_comments(sample("cpp/double_slash_in_define_string")) == []
+
+    def test_the_grammar_opens_a_block_comment_inside_a_define_string(self) -> None:
+        assert cpp_comments(sample("cpp/block_opened_in_define_string")) == [1]
+
+    def test_a_double_slash_inside_a_string_is_not_reported(self) -> None:
+        assert cpp_comments(sample("cpp/double_slash_in_string")) == []
+
+    def test_a_double_slash_inside_a_raw_string_is_not_reported(self) -> None:
+        assert cpp_comments(sample("cpp/double_slash_in_raw_string")) == []
+
+    def test_a_raw_string_delimiter_keeps_its_body_open_past_a_quote(self) -> None:
+        assert cpp_comments(sample("cpp/raw_string_delimiter_keeps_body")) == []
+
+    def test_a_slash_character_literal_is_not_reported(self) -> None:
+        assert cpp_comments(sample("cpp/slash_character_literal")) == []
+
+    def test_a_block_opener_inside_a_string_is_not_reported(self) -> None:
+        assert cpp_comments(sample("cpp/block_opener_in_string")) == []
+
+    def test_a_file_that_will_not_parse_still_reports_what_it_can(self) -> None:
+        assert cpp_comments(sample("cpp/file_will_parse_reports")) == [1, 3]
+
+
+class TestNamespaceEndComments:
+    def test_the_end_of_a_named_namespace_is_spared(self) -> None:
+        assert cpp_comments(sample("cpp/ends_named_namespace")) == []
+
+    def test_an_end_naming_another_namespace_is_reported(self) -> None:
+        assert cpp_comments(sample("cpp/names_another_namespace")) == [4]
+
+    def test_an_end_leaving_out_the_name_is_reported(self) -> None:
+        assert cpp_comments(sample("cpp/leaves_out_name")) == [4]
+
+    def test_a_block_comment_ending_a_namespace_is_reported(self) -> None:
+        assert cpp_comments(sample("cpp/block_comment_ends_namespace")) == [4]
+
+    def test_an_end_spaced_otherwise_is_reported(self) -> None:
+        assert cpp_comments(sample("cpp/spaced_namespace_end")) == [4]
+
+    def test_an_end_with_more_words_is_reported(self) -> None:
+        assert cpp_comments(sample("cpp/namespace_end_more_words")) == [4]
+
+    def test_an_end_on_the_line_after_the_brace_is_reported(self) -> None:
+        assert cpp_comments(sample("cpp/namespace_end_next_line")) == [5]
+
+    def test_the_end_of_an_anonymous_namespace_is_spared(self) -> None:
+        assert cpp_comments(sample("cpp/ends_anonymous_namespace")) == []
+
+    def test_a_name_on_the_end_of_an_anonymous_namespace_is_reported(self) -> None:
+        assert cpp_comments(sample("cpp/names_namespace_anonymous_one_closes")) == [4]
+
+    def test_the_end_of_a_nested_name_namespace_is_spared(self) -> None:
+        assert cpp_comments(sample("cpp/ends_nested_name_namespace")) == []
+
+    def test_the_end_of_an_inline_namespace_is_spared(self) -> None:
+        assert cpp_comments(sample("cpp/ends_inline_namespace")) == []
+
+    def test_the_end_of_a_namespace_nested_in_another_is_spared(self) -> None:
+        assert cpp_comments(sample("cpp/ends_namespace_nested_another")) == []
+
+    def test_the_end_of_a_namespace_with_a_one_line_body_is_spared(self) -> None:
+        assert cpp_comments(sample("cpp/ends_namespace_one_line_body")) == []
+
+    def test_a_struct_end_named_like_a_namespace_is_reported(self) -> None:
+        assert cpp_comments(sample("cpp/struct_end_named_namespace")) == [4]
+
+    def test_a_function_end_named_like_a_namespace_is_reported(self) -> None:
+        assert cpp_comments(sample("cpp/function_end_named_namespace")) == [4]
+
+    def test_an_include_guard_end_is_reported(self) -> None:
+        assert cpp_comments(sample("cpp/include_guard_end")) == [7]
+
+
 class TestParsedComments:
     def test_a_grammar_named_directly_reads_its_comments(self) -> None:
         assert parsed_comments(sample("parsed/grammar_named_directly_reads_comments"), HCL) == [1]
@@ -204,6 +328,13 @@ class TestReaderFor:
 
     def test_tsx_and_typescript_are_read_by_different_grammars(self) -> None:
         assert reader_for("src/App.tsx") is not reader_for("src/app.ts")
+
+    @pytest.mark.parametrize("suffix", CPP_SUFFIXES)
+    def test_a_cpp_suffix_gets_the_cpp_reader(self, suffix: str) -> None:
+        assert reader_for(f"src/counting{suffix}") is cpp_comments
+
+    def test_a_c_file_does_not_get_the_cpp_reader(self) -> None:
+        assert reader_for("src/counting.c") is not cpp_comments
 
     def test_a_lock_file_gets_no_reader(self) -> None:
         assert reader_for("infra/.terraform.lock.hcl") is None

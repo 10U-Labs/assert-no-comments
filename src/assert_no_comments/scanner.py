@@ -8,6 +8,7 @@ import tokenize
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
+import tree_sitter_cpp
 import tree_sitter_hcl
 import tree_sitter_javascript
 import tree_sitter_typescript
@@ -17,10 +18,19 @@ from tree_sitter import Language, Parser
 if TYPE_CHECKING:
     from collections.abc import Callable
 
+    from tree_sitter import Node
+
 DEFINITION_NODES = (ast.AsyncFunctionDef, ast.ClassDef, ast.FunctionDef, ast.Module)
 
 COMMENT_NODE = "comment"
 
+MACRO_BODY_NODES = frozenset({"preproc_arg"})
+
+NAMESPACE_NODE = "namespace_definition"
+
+NAMESPACE_END = b"// namespace"
+
+CPP = Language(tree_sitter_cpp.language())
 HCL = Language(tree_sitter_hcl.language())
 JAVASCRIPT = Language(tree_sitter_javascript.language())
 TYPESCRIPT = Language(tree_sitter_typescript.language_typescript())
@@ -45,15 +55,46 @@ def _lines_of(text: str, places: list[int]) -> list[int]:
     return sorted({bisect.bisect_right(breaks, place) + 1 for place in places})
 
 
-def parsed_comments(text: str, language: Language) -> list[int]:
+def _text_of(node: Node, source: bytes) -> bytes:
+    return source[node.start_byte : node.end_byte]
+
+
+def _spares_nothing(_comment: Node, _source: bytes) -> bool:
+    return False
+
+
+def closes_its_namespace(comment: Node, source: bytes) -> bool:
+    definition = comment.prev_sibling
+    if definition is None or definition.type != NAMESPACE_NODE:
+        return False
+    name = definition.child_by_field_name("name")
+    ending = NAMESPACE_END if name is None else NAMESPACE_END + b" " + _text_of(name, source)
+    same_row = definition.end_point[0] == comment.start_point[0]
+    return same_row and _text_of(comment, source) == ending
+
+
+def parsed_comments(
+    text: str,
+    language: Language,
+    *,
+    spared: Callable[[Node, bytes], bool] = _spares_nothing,
+) -> list[int]:
+    source = text.encode("utf-8")
     places: list[int] = []
-    pending = [Parser(language).parse(text.encode("utf-8")).root_node]
+    pending = [Parser(language).parse(source).root_node]
     while pending:
         node = pending.pop()
-        if node.type == COMMENT_NODE:
+        if node.type in MACRO_BODY_NODES:
+            body = _text_of(node, source).decode("utf-8")
+            places.extend(node.start_point[0] + line for line in parsed_comments(body, language))
+        elif node.type == COMMENT_NODE and not spared(node, source):
             places.append(node.start_point[0] + 1)
         pending.extend(node.children)
     return sorted(set(places))
+
+
+def cpp_comments(text: str) -> list[int]:
+    return parsed_comments(text, CPP, spared=closes_its_namespace)
 
 
 def hcl_comments(text: str) -> list[int]:
@@ -102,14 +143,30 @@ def yaml_comments(text: str) -> list[int]:
 GENERATED_FILES = (".terraform.lock.hcl",)
 
 READERS: dict[str, Callable[[str], list[int]]] = {
+    ".C": cpp_comments,
+    ".CPP": cpp_comments,
+    ".H": cpp_comments,
+    ".HPP": cpp_comments,
+    ".c++": cpp_comments,
+    ".cc": cpp_comments,
     ".cjs": javascript_comments,
+    ".cp": cpp_comments,
+    ".cpp": cpp_comments,
     ".cts": typescript_comments,
+    ".cxx": cpp_comments,
+    ".h": cpp_comments,
+    ".h++": cpp_comments,
     ".hcl": hcl_comments,
+    ".hh": cpp_comments,
+    ".hp": cpp_comments,
+    ".hpp": cpp_comments,
+    ".hxx": cpp_comments,
     ".jsx": javascript_comments,
     ".js": javascript_comments,
     ".mjs": javascript_comments,
     ".mts": typescript_comments,
     ".py": python_comments,
+    ".tcc": cpp_comments,
     ".tf": hcl_comments,
     ".tfvars": hcl_comments,
     ".ts": typescript_comments,

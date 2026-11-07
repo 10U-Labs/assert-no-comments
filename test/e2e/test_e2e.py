@@ -7,6 +7,7 @@ from test_trees import (
     COMPONENT,
     EXCLUDE_VENDORED,
     FULL_RUN,
+    NATIVE,
     PROJECT,
     SOURCE,
     WORKFLOW,
@@ -68,6 +69,18 @@ class TestTheCommandAsAStepRunsIt:
     ) -> None:
         write_tree({**CLEAN_PROJECT, COMPONENT: "project/commented_tsx"})
         assert run_cli_subprocess([*FULL_RUN, "--count"])[1] == "3\n"
+
+    def test_reads_a_cpp_file(
+        self, write_tree: WriteTree, run_cli_subprocess: RunCli
+    ) -> None:
+        write_tree({**CLEAN_PROJECT, NATIVE: "project/commented_cpp"})
+        assert NATIVE in run_cli_subprocess(FULL_RUN)[1]
+
+    def test_spares_the_namespace_end_clang_format_writes(
+        self, write_tree: WriteTree, run_cli_subprocess: RunCli
+    ) -> None:
+        write_tree({**CLEAN_PROJECT, NATIVE: "project/clean_cpp"})
+        assert run_cli_subprocess(FULL_RUN)[0] == 0
 
     def test_leaves_the_vendored_javascript_alone(
         self, write_tree: WriteTree, run_cli_subprocess: RunCli

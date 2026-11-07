@@ -14,6 +14,8 @@ from test_trees import (
     COMPONENT,
     EXCLUDE_VENDORED,
     FULL_RUN,
+    HEADER,
+    NATIVE,
     NOTES,
     PROJECT,
     SOURCE,
@@ -447,6 +449,18 @@ class TestTheCommandOverATree:
     ) -> None:
         write_tree({**CLEAN_PROJECT, COMPONENT: "project/commented_tsx"})
         assert run_cli([*FULL_RUN, "--count"])[1] == "3\n"
+
+    def test_reports_every_cpp_comment_but_the_namespace_end(
+        self, write_tree: WriteTree, run_cli: RunCli
+    ) -> None:
+        write_tree(
+            {
+                NATIVE: "cpp/reports_every_comment_source",
+                HEADER: "cpp/reports_every_comment_header",
+            }
+        )
+        found = [Finding(NATIVE, 1), Finding(NATIVE, 3), Finding(NATIVE, 6), Finding(HEADER, 1)]
+        assert run_cli(["src"])[1] == "".join(f"{finding}: {MESSAGE}\n" for finding in found)
 
     def test_leaves_the_vendored_javascript_alone(
         self, write_tree: WriteTree, run_cli: RunCli
