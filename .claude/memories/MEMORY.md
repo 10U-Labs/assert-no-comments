@@ -1,0 +1,22 @@
+# Memories
+
+- [Memories live in .claude/memories](memories-live-in-dot-claude-memories.md) — autoMemoryDirectory in the untracked settings.local.json points here; there is no CLAUDE.md.
+- [A memory holds only what the tree cannot say](a-memory-holds-only-what-the-tree-cannot-say.md) — nothing release.yml, README.md, the code or git log answers; this index is the one exception.
+- [Commits go straight to main](commits-go-straight-to-main.md) — no branch, no pull request; CI is the only review.
+- [One issue, one commit](one-issue-one-commit.md) — one commit and one push per issue, never a batch, unlike the sibling repositories.
+- [An issue is closed by its commit](an-issue-is-closed-by-its-commit.md) — one `Closes #N` line per issue; `Closes #1 and #2` leaves #2 open.
+- [Push once and let the run finish](push-once-and-let-the-run-finish.md) — a second push cancels the first run and costs that commit its release.
+- [A rejected push is fixed forward](a-rejected-push-is-fixed-forward.md) — one follow-up commit answering every failed check, never an amend and force-push.
+- [CI is the source of truth](ci-is-the-source-of-truth.md) — never run tests, linters or builds locally; a green release run publishes.
+- [Find a run by the full hash](find-a-run-by-the-full-hash.md) — `gh run list --commit` lists nothing for a short hash; pass `git rev-parse HEAD`.
+- [Path filters are not shell globs](path-filters-are-not-shell-globs.md) — `'**.md'` reaches files at the root; `**/*.md` does not.
+- [An issue states one solution](an-issue-states-one-solution.md) — Proposed Solution names one change, never a menu or a question.
+- [An issue has seven sections](an-issue-has-seven-sections.md) — Problem, the three test tiers, static analysis, regression tests, Proposed Solution.
+- [A paragraph wraps at eighty columns](a-paragraph-wraps-at-eighty-columns.md) — in every .md file; headings, tables, fences, frontmatter and index entries keep their width.
+- [Every language is read by its own parser](every-language-is-read-by-its-own-parser.md) — a grammar per language, never a character walk; read before adding one.
+- [Test first](test-first.md) — the test before the code; CI observes red and green.
+- [Cover every tier the change touches](cover-every-tier-the-change-touches.md) — unit, integration, e2e; unit and integration each gate on full branch coverage.
+- [A tier is a directory, not a marker](a-tier-is-a-directory-not-a-marker.md) — no pytest.mark restates the directory a test sits in.
+- [A sample is a file, not a literal](a-sample-is-a-file-not-a-literal.md) — source text is a .txt under the tier's samples/, loaded with sample().
+- [Anything importable lives outside conftest](anything-importable-lives-outside-conftest.md) — shared code is lib/test_read_sample and lib/test_trees, reached through PYTHONPATH=lib.
+- [A conftest with no fixture in it stays](a-conftest-with-no-fixture-in-it-stays.md) — the integration and e2e conftest.py are zero bytes and stay.

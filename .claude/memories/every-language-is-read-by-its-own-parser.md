@@ -1,3 +1,10 @@
+---
+name: every-language-is-read-by-its-own-parser
+description: A reader in scanner.py is a parser for its language, never a walk over the characters; read before adding a language or reaching for tree-sitter-language-pack
+metadata:
+  type: project
+---
+
 # Every language is read by its own parser
 
 A reader in `src/assert_no_comments/scanner.py` is a parser for the language it
