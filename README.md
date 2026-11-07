@@ -61,7 +61,7 @@ assert-no-comments .github/workflows etc lib scripts src test \
 
 | Read as | Suffixes | Reported |
 | --- | --- | --- |
-| Python | `.py` | `#`, and any module, class or function docstring |
+| Python | `.py` | `#`, except a `#!` first line, and any module, class or function docstring |
 | YAML | `.yml`, `.yaml` | `#` |
 | OpenTofu | `.tf`, `.tfvars`, `.hcl` | `#`, `//`, and `/* */` |
 | JavaScript | `.js`, `.mjs`, `.cjs`, `.jsx` | `//`, `/* */`, `{/* */}` |
@@ -101,13 +101,13 @@ brace's own line is spared. Every other form is reported, `/* namespace a */`
 and `//   namespace   a` included, and so is an end comment on the line below
 the brace or one that names a different namespace.
 
-A `#!` line opening a JavaScript, TypeScript or shell file is not reported
-either. It names the interpreter the kernel runs the file with, so a wrong one
-fails the next run rather than going stale. The JavaScript and TypeScript
-grammars parse it as a line of its own, and the shell grammar parses it as a
-comment, so the shell reader spares it only where the kernel reads it, as the
-first two characters of the file. Anywhere else, even one space in, it is
-reported.
+A `#!` line opening a Python, JavaScript, TypeScript or shell file is not
+reported either. It names the interpreter the kernel runs the file with, so a
+wrong one fails the next run rather than going stale. The JavaScript and
+TypeScript grammars parse it as a line of its own, while `tokenize` and the
+shell grammar parse it as a comment, so the Python and shell readers spare it
+only where the kernel reads it, as the first two characters of the file.
+Anywhere else, even one space in, it is reported.
 
 A docstring counts as a comment. It is the same prose in the same place, and the
 fact that a language keeps it in `__doc__` does not make it any more likely to

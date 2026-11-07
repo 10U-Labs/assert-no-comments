@@ -94,6 +94,9 @@ class TestPythonFilesOnDisk:
     def test_leaves_a_hash_in_a_string_alone(self, tmp_path: Path) -> None:
         assert _lines(tmp_path, "a.py", sample("python/leaves_hash_in_string")) == []
 
+    def test_reports_the_comment_and_not_the_shebang(self, tmp_path: Path) -> None:
+        assert _lines(tmp_path, "a.py", sample("python/reports_comment_not_shebang")) == [3]
+
     def test_leaves_a_bare_number_alone(self, tmp_path: Path) -> None:
         assert _lines(tmp_path, "a.py", sample("python/leaves_bare_number")) == []
 

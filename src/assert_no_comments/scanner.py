@@ -32,7 +32,9 @@ NAMESPACE_NODE = "namespace_definition"
 
 NAMESPACE_END = b"// namespace"
 
-SHEBANG = b"#!"
+SHEBANG = "#!"
+
+FIRST_COLUMN_OF_FIRST_LINE = (1, 0)
 
 BASH = Language(tree_sitter_bash.language())
 C = Language(tree_sitter_c.language())
@@ -80,7 +82,11 @@ def closes_its_namespace(comment: Node, source: bytes) -> bool:
 
 
 def is_a_shebang(comment: Node, source: bytes) -> bool:
-    return comment.start_byte == 0 and _text_of(comment, source).startswith(SHEBANG)
+    return comment.start_byte == 0 and _text_of(comment, source).startswith(SHEBANG.encode())
+
+
+def _is_a_python_shebang(token: tokenize.TokenInfo) -> bool:
+    return token.start == FIRST_COLUMN_OF_FIRST_LINE and token.string.startswith(SHEBANG)
 
 
 def parsed_comments(
@@ -135,7 +141,7 @@ def python_comments(text: str) -> list[int]:
     places = [
         token.start[0]
         for token in tokenize.generate_tokens(io.StringIO(text).readline)
-        if token.type == tokenize.COMMENT
+        if token.type == tokenize.COMMENT and not _is_a_python_shebang(token)
     ]
     for node in ast.walk(ast.parse(text)):
         if not isinstance(node, DEFINITION_NODES) or not node.body:

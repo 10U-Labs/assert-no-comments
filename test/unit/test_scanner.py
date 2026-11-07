@@ -60,6 +60,21 @@ class TestPythonComments:
     def test_a_hash_inside_a_string_is_not_reported(self) -> None:
         assert python_comments(sample("python/hash_inside_string_reported")) == []
 
+    def test_a_shebang_on_the_first_line_is_not_reported(self) -> None:
+        assert python_comments(sample("python/shebang_spared")) == []
+
+    def test_a_shebang_on_the_second_line_is_reported(self) -> None:
+        assert python_comments(sample("python/shebang_on_second_line_reported")) == [2]
+
+    def test_a_shebang_after_a_space_is_reported(self) -> None:
+        assert python_comments(sample("python/indented_shebang_reported")) == [1]
+
+    def test_a_first_line_with_a_space_before_the_bang_is_reported(self) -> None:
+        assert python_comments(sample("python/spaced_bang_reported")) == [1]
+
+    def test_a_comment_after_the_shebang_is_reported(self) -> None:
+        assert python_comments(sample("python/comment_after_shebang_reported")) == [2]
+
     def test_a_module_docstring_is_reported(self) -> None:
         assert python_comments(sample("python/module_docstring_reported")) == [1]
 
