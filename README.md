@@ -70,6 +70,7 @@ assert-no-comments .github/workflows etc lib scripts src test \
 | C | `.c` | `//`, and `/* */` |
 | C++ | `.cpp`, `.cc`, `.cxx`, `.c++`, `.cp`, `.C`, `.CPP`, `.tcc`, `.h`, `.hh`, `.hpp`, `.hxx`, `.h++`, `.hp`, `.H`, `.HPP` | `//`, and `/* */` |
 | Shell | `.sh`, `.bash` | `#`, except a `#!` first line |
+| SystemVerilog | `.sv`, `.svh`, `.v`, `.vh` | `//`, and `/* */` |
 
 `{/* */}` is the third form because it is the only one JSX has among the
 children of an element: a bare `/* */` there is text that renders.
@@ -85,6 +86,12 @@ C++ because its suffix cannot say which of the two languages a header is
 written in. The C++ grammar extends the C one and both write comments the same
 way, so a C header parses as C++ unless it uses a C++ keyword as a name, and
 even then the comments the grammar still recognises are reported.
+
+Verilog is read by the SystemVerilog grammar, because IEEE 1800 took IEEE 1364
+into itself in 2009. A Verilog file that uses a later SystemVerilog keyword such
+as `logic` as a name will not parse, and the comments the grammar still
+recognises are reported. `.map` stays out, though the grammar reads a library
+map file, because `.map` is also the suffix of a JavaScript source map.
 
 A file whose suffix names none of those is left alone, so a `.md` file is never
 read: prose is the content of a markdown file rather than a gloss on a line of
@@ -116,23 +123,25 @@ still be true.
 Every language is read by its own grammar, so nothing here decides what a
 character is by looking at the characters beside it: Python through `tokenize`
 and `ast`, YAML through the `yaml` scanner, and JavaScript, TypeScript, TSX,
-OpenTofu, C, C++ and shell through their tree-sitter grammars. A `#` inside a
-Python string, a YAML quoted scalar or block scalar, an HCL heredoc, or a shell
-quoted string, word, here-document or parameter expansion is content. A `//`
-inside a JavaScript string, template literal or regular expression is content,
-a `/` after a name is division, the `/` closing a JSX tag is neither, and text
-between JSX tags renders on the page rather than commenting on it. A `//` inside
-a C or C++ string, or a C++ raw string, is content, and one in the body of a
-`#define` is a comment, which the grammar reads as part of the body and this
-tool finds by parsing the body again. Each of those is a question about where in
-the file the character sits, which is what a parser knows and a marker table
-does not.
+OpenTofu, C, C++, shell and SystemVerilog through their tree-sitter grammars. A
+`#` inside a Python string, a YAML quoted scalar or block scalar, an HCL
+heredoc, or a shell quoted string, word, here-document or parameter expansion is
+content. A `//` inside a JavaScript string, template literal or regular
+expression is content, a `/` after a name is division, the `/` closing a JSX tag
+is neither, and text between JSX tags renders on the page rather than commenting
+on it. A `//` inside a C, C++ or SystemVerilog string, or a C++ raw string, is
+content, and `(*` opens a SystemVerilog attribute rather than a comment. A
+comment in the body of a C or C++ `#define`, or in the text of a SystemVerilog
+`` `define ``, is still a comment: the grammar reads it as part of the body, and
+this tool finds it by parsing the body again. Each of those is a question about
+where in the file the character sits, which is what a parser knows and a marker
+table does not.
 
 A Python or YAML file that will not parse is an error rather than a file with
-nothing in it. A JavaScript, TypeScript, TSX, OpenTofu, C, C++ or shell file
-that will not parse is read as far as its grammar gets: the comments it can
-still recognise are reported, so a broken file gives findings rather than an
-exit code of 2.
+nothing in it. A JavaScript, TypeScript, TSX, OpenTofu, C, C++, shell or
+SystemVerilog file that will not parse is read as far as its grammar gets: the
+comments it can still recognise are reported, so a broken file gives findings
+rather than an exit code of 2.
 
 One limit belongs to the C and C++ grammars rather than to this tool. They end
 the body of a `#define` at the first `/*`, even one inside a string literal, so
@@ -143,6 +152,18 @@ false one. The rule comes from `tree-sitter-c`, which `tree-sitter-cpp` builds
 on, and is reported there as [tree-sitter/tree-sitter-c#335][preproc-arg].
 
 [preproc-arg]: https://github.com/tree-sitter/tree-sitter-c/issues/335
+
+Two limits belong to the SystemVerilog grammar. It ends the text of a
+`` `define `` at the first newline with no backslash before it, even inside a
+block comment or a triple-quoted string, and reads the rest of that comment or
+string as code. In `` `define H(x) or /* a `` followed by `b */ #x`, the block
+comment opening on the first line is lost, and in `` `define T """ `` followed
+by `x // y`, the `// y` inside the string is reported. Both are reported
+upstream, as [gmlarumbe/tree-sitter-systemverilog#87][macro-block] and
+[gmlarumbe/tree-sitter-systemverilog#88][macro-string].
+
+[macro-block]: https://github.com/gmlarumbe/tree-sitter-systemverilog/issues/87
+[macro-string]: https://github.com/gmlarumbe/tree-sitter-systemverilog/issues/88
 
 ## What is walked
 

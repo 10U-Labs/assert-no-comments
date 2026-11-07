@@ -13,6 +13,7 @@ import tree_sitter_c
 import tree_sitter_cpp
 import tree_sitter_hcl
 import tree_sitter_javascript
+import tree_sitter_systemverilog
 import tree_sitter_typescript
 import yaml
 from tree_sitter import Language, Parser
@@ -24,9 +25,9 @@ if TYPE_CHECKING:
 
 DEFINITION_NODES = (ast.AsyncFunctionDef, ast.ClassDef, ast.FunctionDef, ast.Module)
 
-COMMENT_NODE = "comment"
+COMMENT_NODES = frozenset({"block_comment", "comment", "one_line_comment"})
 
-MACRO_BODY_NODES = frozenset({"preproc_arg"})
+MACRO_BODY_NODES = frozenset({"macro_text", "preproc_arg"})
 
 NAMESPACE_NODE = "namespace_definition"
 
@@ -41,6 +42,7 @@ C = Language(tree_sitter_c.language())
 CPP = Language(tree_sitter_cpp.language())
 HCL = Language(tree_sitter_hcl.language())
 JAVASCRIPT = Language(tree_sitter_javascript.language())
+SYSTEMVERILOG = Language(tree_sitter_systemverilog.language())
 TYPESCRIPT = Language(tree_sitter_typescript.language_typescript())
 TSX = Language(tree_sitter_typescript.language_tsx())
 
@@ -103,7 +105,7 @@ def parsed_comments(
         if node.type in MACRO_BODY_NODES:
             body = _text_of(node, source).decode("utf-8")
             places.extend(node.start_point[0] + line for line in parsed_comments(body, language))
-        elif node.type == COMMENT_NODE and not spared(node, source):
+        elif node.type in COMMENT_NODES and not spared(node, source):
             places.append(node.start_point[0] + 1)
         pending.extend(node.children)
     return sorted(set(places))
@@ -135,6 +137,10 @@ def tsx_comments(text: str) -> list[int]:
 
 def shell_comments(text: str) -> list[int]:
     return parsed_comments(text, BASH, spared=is_a_shebang)
+
+
+def systemverilog_comments(text: str) -> list[int]:
+    return parsed_comments(text, SYSTEMVERILOG)
 
 
 def python_comments(text: str) -> list[int]:
@@ -193,11 +199,15 @@ READERS: dict[str, Callable[[str], list[int]]] = {
     ".mts": typescript_comments,
     ".py": python_comments,
     ".sh": shell_comments,
+    ".sv": systemverilog_comments,
+    ".svh": systemverilog_comments,
     ".tcc": cpp_comments,
     ".tf": hcl_comments,
     ".tfvars": hcl_comments,
     ".ts": typescript_comments,
     ".tsx": tsx_comments,
+    ".v": systemverilog_comments,
+    ".vh": systemverilog_comments,
     ".yaml": yaml_comments,
     ".yml": yaml_comments,
 }

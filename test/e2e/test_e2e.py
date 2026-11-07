@@ -5,6 +5,7 @@ from typing import TYPE_CHECKING
 from test_trees import (
     CLEAN_PROJECT,
     COMPONENT,
+    DESIGN,
     EXCLUDE_VENDORED,
     EXTENSION,
     FULL_RUN,
@@ -72,12 +73,6 @@ class TestTheCommandAsAStepRunsIt:
         write_tree({**CLEAN_PROJECT, COMPONENT: "project/commented_tsx"})
         assert run_cli_subprocess([*FULL_RUN, "--count"])[1] == "3\n"
 
-    def test_reports_a_shell_comment_and_not_the_shebang(
-        self, write_tree: WriteTree, run_cli_subprocess: RunCli
-    ) -> None:
-        write_tree({**CLEAN_PROJECT, SCRIPT: "project/commented_shell"})
-        assert run_cli_subprocess([*FULL_RUN, "--count"])[1] == "1\n"
-
     def test_leaves_the_vendored_javascript_alone(
         self, write_tree: WriteTree, run_cli_subprocess: RunCli
     ) -> None:
@@ -139,7 +134,7 @@ class TestTheCommandAsAStepRunsIt:
         assert EXCLUDE_VENDORED in run_cli_subprocess([*FULL_RUN, "--verbose"])[1]
 
 
-class TestTheCommandOverCAndCpp:
+class TestTheCommandOverEachLanguage:
     def test_reads_a_c_file(
         self, write_tree: WriteTree, run_cli_subprocess: RunCli
     ) -> None:
@@ -157,3 +152,15 @@ class TestTheCommandOverCAndCpp:
     ) -> None:
         write_tree({**CLEAN_PROJECT, NATIVE: "project/clean_cpp"})
         assert run_cli_subprocess(FULL_RUN)[0] == 0
+
+    def test_reports_a_shell_comment_and_not_the_shebang(
+        self, write_tree: WriteTree, run_cli_subprocess: RunCli
+    ) -> None:
+        write_tree({**CLEAN_PROJECT, SCRIPT: "project/commented_shell"})
+        assert run_cli_subprocess([*FULL_RUN, "--count"])[1] == "1\n"
+
+    def test_reads_a_systemverilog_file(
+        self, write_tree: WriteTree, run_cli_subprocess: RunCli
+    ) -> None:
+        write_tree({**CLEAN_PROJECT, DESIGN: "project/commented_systemverilog"})
+        assert DESIGN in run_cli_subprocess(FULL_RUN)[1]

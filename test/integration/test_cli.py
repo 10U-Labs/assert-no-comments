@@ -12,10 +12,12 @@ from test_read_sample import read_sample
 from test_trees import (
     CLEAN_PROJECT,
     COMPONENT,
+    DESIGN,
     EXCLUDE_VENDORED,
     EXTENSION,
     FULL_RUN,
     HEADER,
+    LEGACY,
     NATIVE,
     NOTES,
     PROJECT,
@@ -459,30 +461,6 @@ class TestTheCommandOverATree:
         write_tree({**CLEAN_PROJECT, COMPONENT: "project/commented_tsx"})
         assert run_cli([*FULL_RUN, "--count"])[1] == "3\n"
 
-    def test_reports_every_cpp_comment_but_the_namespace_end(
-        self, write_tree: WriteTree, run_cli: RunCli
-    ) -> None:
-        write_tree(
-            {
-                NATIVE: "cpp/reports_every_comment_source",
-                HEADER: "cpp/reports_every_comment_header",
-            }
-        )
-        found = [Finding(NATIVE, 1), Finding(NATIVE, 3), Finding(NATIVE, 6), Finding(HEADER, 1)]
-        assert run_cli(["src"])[1] == _printed(found)
-
-    def test_reports_both_comments_a_c_file_carries(
-        self, write_tree: WriteTree, run_cli: RunCli
-    ) -> None:
-        write_tree({EXTENSION: "c/reports_both_comments"})
-        assert run_cli(["src"])[1] == _printed([Finding(EXTENSION, 1), Finding(EXTENSION, 2)])
-
-    def test_reports_the_comment_in_a_shell_script_and_not_its_shebang(
-        self, write_tree: WriteTree, run_cli: RunCli
-    ) -> None:
-        write_tree({SCRIPT: "shell/reports_the_comment_not_the_shebang"})
-        assert run_cli(["src"])[1] == _printed([Finding(SCRIPT, 3)])
-
     def test_leaves_the_vendored_javascript_alone(
         self, write_tree: WriteTree, run_cli: RunCli
     ) -> None:
@@ -542,6 +520,44 @@ class TestTheCommandOverATree:
     ) -> None:
         write_tree(PROJECT)
         assert f"::error file={SOURCE}," in run_cli([*FULL_RUN, "--annotate"])[1]
+
+
+class TestTheCommandOverEachLanguage:
+    def test_reports_every_cpp_comment_but_the_namespace_end(
+        self, write_tree: WriteTree, run_cli: RunCli
+    ) -> None:
+        write_tree(
+            {
+                NATIVE: "cpp/reports_every_comment_source",
+                HEADER: "cpp/reports_every_comment_header",
+            }
+        )
+        found = [Finding(NATIVE, 1), Finding(NATIVE, 3), Finding(NATIVE, 6), Finding(HEADER, 1)]
+        assert run_cli(["src"])[1] == _printed(found)
+
+    def test_reports_both_comments_a_c_file_carries(
+        self, write_tree: WriteTree, run_cli: RunCli
+    ) -> None:
+        write_tree({EXTENSION: "c/reports_both_comments"})
+        assert run_cli(["src"])[1] == _printed([Finding(EXTENSION, 1), Finding(EXTENSION, 2)])
+
+    def test_reports_the_comment_in_a_shell_script_and_not_its_shebang(
+        self, write_tree: WriteTree, run_cli: RunCli
+    ) -> None:
+        write_tree({SCRIPT: "shell/reports_the_comment_not_the_shebang"})
+        assert run_cli(["src"])[1] == _printed([Finding(SCRIPT, 3)])
+
+    def test_reports_every_comment_in_systemverilog_and_verilog(
+        self, write_tree: WriteTree, run_cli: RunCli
+    ) -> None:
+        write_tree(
+            {
+                DESIGN: "systemverilog/reports_comments_design",
+                LEGACY: "systemverilog/reports_comments_legacy",
+            }
+        )
+        found = [Finding(DESIGN, 2), Finding(DESIGN, 3), Finding(LEGACY, 1)]
+        assert run_cli(["src"])[1] == _printed(found)
 
 
 class TestTheCommandWhenATreeWillNotRead:

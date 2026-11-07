@@ -18,6 +18,7 @@ from assert_no_comments.scanner import (
     python_comments,
     reader_for,
     shell_comments,
+    systemverilog_comments,
     tsx_comments,
     typescript_comments,
     yaml_comments,
@@ -44,6 +45,8 @@ CPP_SUFFIXES = (
 )
 
 SHELL_SUFFIXES = (".bash", ".sh")
+
+SYSTEMVERILOG_SUFFIXES = (".sv", ".svh", ".v", ".vh")
 
 
 def sample(name: str) -> str:
@@ -376,6 +379,57 @@ class TestShellComments:
         assert shell_comments(sample("shell/hash_in_parameter_expansion")) == []
 
 
+def _hdl(name: str) -> list[int]:
+    return systemverilog_comments(sample(f"systemverilog/{name}"))
+
+
+class TestSystemverilogComments:
+    def test_a_line_comment_is_reported(self) -> None:
+        assert _hdl("line_comment_reported") == [2]
+
+    def test_a_block_comment_is_reported_at_its_first_line(self) -> None:
+        assert _hdl("block_comment_reported_first_line") == [2]
+
+    def test_a_comment_after_code_on_the_same_line_is_reported(self) -> None:
+        assert _hdl("comment_after_code_reported") == [2]
+
+    def test_a_comment_after_endmodule_is_reported(self) -> None:
+        assert _hdl("comment_after_endmodule_reported") == [2]
+
+    def test_a_line_comment_in_a_define_body_is_reported(self) -> None:
+        assert _hdl("comment_in_define_body_reported") == [1]
+
+    def test_a_block_comment_in_a_define_body_is_reported(self) -> None:
+        assert _hdl("block_comment_in_define_body_reported") == [1]
+
+    def test_a_comment_on_the_continued_line_of_a_define_is_reported(self) -> None:
+        assert _hdl("comment_continued_define_line") == [2]
+
+    def test_a_double_slash_inside_a_define_string_is_not_reported(self) -> None:
+        assert _hdl("double_slash_in_define_string") == []
+
+    def test_a_line_comment_ends_at_the_backslash_that_continues_a_define(self) -> None:
+        assert _hdl("comment_ends_at_the_backslash") == [1, 2]
+
+    def test_the_grammar_ends_a_define_inside_a_block_comment(self) -> None:
+        assert _hdl("block_comment_over_lines_in_define") == [2]
+
+    def test_the_grammar_ends_a_define_inside_a_triple_quoted_string(self) -> None:
+        assert _hdl("triple_quoted_string_in_define") == [2, 3]
+
+    def test_a_triple_quoted_string_outside_a_macro_is_not_reported(self) -> None:
+        assert _hdl("triple_quoted_string_outside_macro") == []
+
+    def test_comment_markers_inside_a_string_literal_are_not_reported(self) -> None:
+        assert _hdl("markers_in_string_literal") == []
+
+    def test_an_attribute_instance_is_not_reported(self) -> None:
+        assert _hdl("attribute_instance") == []
+
+    def test_a_verilog_2005_file_reports_its_comments(self) -> None:
+        assert _hdl("verilog_2005_comments") == [2, 4]
+
+
 class TestParsedComments:
     def test_a_grammar_named_directly_reads_its_comments(self) -> None:
         assert parsed_comments(sample("parsed/grammar_named_directly_reads_comments"), HCL) == [1]
@@ -431,6 +485,15 @@ class TestReaderFor:
     @pytest.mark.parametrize("suffix", SHELL_SUFFIXES)
     def test_a_shell_suffix_gets_the_shell_reader(self, suffix: str) -> None:
         assert reader_for(f"scripts/release{suffix}") is shell_comments
+
+    @pytest.mark.parametrize("suffix", SYSTEMVERILOG_SUFFIXES)
+    def test_a_hardware_description_suffix_gets_the_systemverilog_reader(
+        self, suffix: str
+    ) -> None:
+        assert reader_for(f"rtl/counter{suffix}") is systemverilog_comments
+
+    def test_a_map_file_gets_no_reader(self) -> None:
+        assert reader_for("dist/app.js.map") is None
 
     def test_a_lock_file_gets_no_reader(self) -> None:
         assert reader_for("infra/.terraform.lock.hcl") is None
