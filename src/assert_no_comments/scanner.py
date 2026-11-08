@@ -28,7 +28,7 @@ if TYPE_CHECKING:
 
 DEFINITION_NODES = (ast.AsyncFunctionDef, ast.ClassDef, ast.FunctionDef, ast.Module)
 
-COMMENT_NODES = frozenset({"block_comment", "comment", "one_line_comment"})
+COMMENT_NODES = frozenset({"block_comment", "comment", "html_comment", "one_line_comment"})
 
 MACRO_BODY_NODES = frozenset({"macro_text", "preproc_arg"})
 

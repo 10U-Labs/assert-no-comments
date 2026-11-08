@@ -242,6 +242,21 @@ class TestJavascriptComments:
     def test_a_block_comment_is_reported(self) -> None:
         assert javascript_comments(sample("javascript/block_comment_reported")) == [2]
 
+    def test_an_html_like_opener_is_reported(self) -> None:
+        assert javascript_comments(sample("javascript/html_comment_opener_reported")) == [2]
+
+    def test_an_html_like_closer_at_the_start_of_a_line_is_reported(self) -> None:
+        assert javascript_comments(sample("javascript/html_comment_closer_reported")) == [2]
+
+    def test_an_html_like_opener_after_code_is_reported(self) -> None:
+        assert javascript_comments(sample("javascript/html_comment_after_code_reported")) == [2]
+
+    def test_an_html_like_opener_inside_a_string_is_not_reported(self) -> None:
+        assert javascript_comments(sample("javascript/html_comment_opener_inside_string")) == []
+
+    def test_a_decrement_before_a_greater_than_is_not_reported(self) -> None:
+        assert javascript_comments(sample("javascript/decrement_before_greater_than")) == []
+
     def test_a_double_slash_inside_a_string_is_not_reported(self) -> None:
         assert javascript_comments(sample("javascript/double_slash_inside_string_reported")) == []
 
@@ -289,6 +304,9 @@ class TestTypescriptComments:
     def test_a_type_assertion_does_not_hide_the_comment_after_it(self) -> None:
         assert typescript_comments(sample("typescript/type_assertion_hide_comment_after")) == [2]
 
+    def test_an_html_like_comment_is_reported(self) -> None:
+        assert typescript_comments(sample("typescript/html_comment_reported")) == [2]
+
 
 class TestTsxComments:
     def test_a_comment_is_reported(self) -> None:
@@ -299,6 +317,9 @@ class TestTsxComments:
 
     def test_a_comment_braced_inside_an_element_is_reported(self) -> None:
         assert tsx_comments(sample("tsx/comment_braced_inside_element_reported")) == [3]
+
+    def test_an_html_like_comment_is_reported(self) -> None:
+        assert tsx_comments(sample("tsx/html_comment_reported")) == [2]
 
 
 class TestCppComments:

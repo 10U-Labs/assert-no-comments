@@ -165,6 +165,9 @@ class TestJavascriptFilesOnDisk:
     def test_reports_a_block_comment(self, tmp_path: Path) -> None:
         assert _lines(tmp_path, "a.js", sample("javascript/reports_block_comment")) == [2]
 
+    def test_reports_an_html_like_comment(self, tmp_path: Path) -> None:
+        assert _lines(tmp_path, "a.js", sample("javascript/reports_html_comment")) == [2]
+
     def test_reads_the_mjs_suffix_too(self, tmp_path: Path) -> None:
         assert _lines(tmp_path, "a.mjs", "// why") == [1]
 

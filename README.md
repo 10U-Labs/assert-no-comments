@@ -65,9 +65,9 @@ assert-no-comments .github/workflows etc lib scripts src test \
 | YAML | `.yml`, `.yaml` | `#` |
 | GitHub Actions | `.yml` and `.yaml` in `.github/workflows`, `action.yml`, `action.yaml` | `#`, and each `run:` script's comments in its shell's language |
 | OpenTofu | `.tf`, `.tfvars`, `.hcl` | `#`, `//`, and `/* */` |
-| JavaScript | `.js`, `.mjs`, `.cjs`, `.jsx` | `//`, `/* */`, `{/* */}` |
-| TypeScript | `.ts`, `.mts`, `.cts` | `//`, and `/* */` |
-| TSX | `.tsx` | `//`, `/* */`, `{/* */}` |
+| JavaScript | `.js`, `.mjs`, `.cjs`, `.jsx` | `//`, `/* */`, `{/* */}`, `<!--`, `-->` |
+| TypeScript | `.ts`, `.mts`, `.cts` | `//`, `/* */`, `<!--`, and `-->` |
+| TSX | `.tsx` | `//`, `/* */`, `{/* */}`, `<!--`, `-->` |
 | C | `.c` | `//`, and `/* */` |
 | C++ | `.cpp`, `.cc`, `.cxx`, `.c++`, `.cp`, `.C`, `.CPP`, `.tcc`, `.h`, `.hh`, `.hpp`, `.hxx`, `.h++`, `.hp`, `.H`, `.HPP` | `//`, and `/* */` |
 | Shell | `.sh`, `.bash` | `#`, except a `#!` first line |
@@ -75,6 +75,13 @@ assert-no-comments .github/workflows etc lib scripts src test \
 
 `{/* */}` is the third form because it is the only one JSX has among the
 children of an element: a bare `/* */` there is text that renders.
+
+`<!--` and `-->` are JavaScript's HTML-like comments, each running to the end of
+its line like `//`. The JavaScript, TypeScript and TSX grammars all parse them,
+though neither a module nor TypeScript accepts one, and either way the line is
+reported: it is a comment, or it is not code that should be there. Inside a
+string the marker is text, and `a --> b` is a decrement followed by a
+comparison, so neither is reported.
 
 `.tsx` is its own row rather than a fourth suffix on the TypeScript one because
 the two are different dialects: `<string>y` asserts a type in one and opens an
