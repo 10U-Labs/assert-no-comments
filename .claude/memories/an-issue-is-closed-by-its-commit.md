@@ -16,4 +16,5 @@ closes #1 and leaves #2 open. There is no pull request to close it instead, per
 
 **How to apply:** give each issue its own `Closes #N` line in the message, ahead
 of the attribution lines, and only in the commit that finishes it, per
-[[issue-closing-keywords-fire-on-push]].
+[[issue-closing-keywords-fire-on-push]]. A commit that only mentions an issue
+writes `Refs #N` or `See #N` instead, per [[closing-keyword-form]].
