@@ -13,7 +13,7 @@ heading, a table row, a fenced block, a frontmatter line and an entry in
 `MEMORY.md` keep whatever width they have, and a commit message body is still
 written as one line, because none of those is a markdown paragraph.
 
-**Why:** nothing checks it. `documentation.yml` passes `--disable MD013`, and
+**Why:** nothing checks it. `markdownlint.yml` passes `--disable MD013`, and
 turning that rule on would cap every line rather than every paragraph — eighty
 is its own default, but exempting tables and fenced blocks takes a config file,
 and `assert-no-linter-config-files` names markdownlint. So the cap is kept by

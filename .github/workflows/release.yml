@@ -317,7 +317,7 @@ on:
     branches:
       - main
     paths:
-      - ".github/workflows/documentation.yml"
+      - ".github/workflows/markdownlint.yml"
       - ".github/workflows/release.yml"
       - "action.yml"
       - "pyproject.toml"

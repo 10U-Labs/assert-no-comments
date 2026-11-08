@@ -11,7 +11,7 @@ metadata:
 # Only wait while a run is in progress
 
 While any run for a pushed commit is in progress, of `release.yml` or
-`documentation.yml`, do nothing but wait for it: no probing of the failing
+`markdownlint.yml`, do nothing but wait for it: no probing of the failing
 file, no edits, no commits.
 
 **Why:** a run's findings decide the next step, and work done before they land
