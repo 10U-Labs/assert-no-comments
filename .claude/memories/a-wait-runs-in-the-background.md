@@ -30,6 +30,6 @@ several minutes without a call. So when a `gh` call answers 403 that way, the
 next one waits behind a background `sleep` rather than retrying at once, since
 each retry keeps the limit tripped.
 
-Idle still means idle: the autopilot's wait reminder forbids diagnosis, edits
-and commits while the run is in progress. Find the run per
+Idle still means idle: nothing but the wait goes on while the run is in
+progress, per [[only-wait-while-a-run-is-in-progress]]. Find the run per
 [[find-a-run-by-the-full-hash]].

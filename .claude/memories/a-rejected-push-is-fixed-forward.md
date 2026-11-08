@@ -16,4 +16,5 @@ the earliest one.
 
 **How to apply:** read the whole list, with `gh run view --log-failed`, and
 answer all of it in one commit, pushed once per
-[[push-once-and-let-the-run-finish]].
+[[push-once-and-let-the-run-finish]]. A break the push inherited is answered
+the same way, per [[a-red-run-is-fixed-by-the-session-that-pushed]].
