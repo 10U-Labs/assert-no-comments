@@ -178,8 +178,17 @@ class TestWorkflowComments:
     def test_a_block_scalar_under_another_key_is_not_read(self) -> None:
         assert _workflow("block_scalar_under_another_key") == []
 
-    def test_a_quoted_run_value_is_not_read(self) -> None:
-        assert _workflow("quoted_run_value") == []
+    def test_a_comment_in_a_double_quoted_run_value_is_reported(self) -> None:
+        assert _workflow("double_quoted_run_comment") == [7]
+
+    def test_a_comment_in_a_single_quoted_run_value_is_reported(self) -> None:
+        assert _workflow("single_quoted_run_comment") == [7]
+
+    def test_a_quoted_run_value_over_several_lines_is_reported_at_its_first(self) -> None:
+        assert _workflow("double_quoted_run_over_three_lines") == [7]
+
+    def test_markers_the_shell_reads_as_content_in_a_quoted_run_are_not_reported(self) -> None:
+        assert _workflow("quoted_run_markers_the_shell_reads_as_content") == []
 
 
 class TestWorkflowShells:

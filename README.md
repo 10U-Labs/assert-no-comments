@@ -115,12 +115,16 @@ default is `pwsh` when a label in the job's `runs-on` starts with `windows`, and
 
 GitHub substitutes each `${{ }}` expression into the script's text before the
 shell runs it, so each is read as a run of underscores of the same length, and a
-comment after one on the same line is still found. Only a `run:` written as a
-block scalar, `|` or `>`, is read as a script. A plain one cannot hold a
-comment, since YAML ends it at a `#` after a space and reports that `#` itself,
-and a quoted one is not read yet, which is [#26][quoted-run].
+comment after one on the same line is still found.
 
-[quoted-run]: https://github.com/10U-Labs/assert-no-comments/issues/26
+A `run:` written as a block scalar, `|` or `>`, is read from the file's own
+lines, so each comment in it is reported at its own line. One written as a
+quoted scalar, `'` or `"`, is read from the value YAML gives it, which is the
+text GitHub hands the shell, and each comment in it is reported at the line
+where the value starts: a quoted value that runs over several lines folds each
+line break into a space, and a `\n` escape adds a row the file does not have, so
+its rows cannot be mapped back to the file's lines. A plain one is not read
+again, since YAML ends it at a `#` after a space and reports that `#` itself.
 
 A file whose suffix names none of those is left alone, so a `.md` file is never
 read: prose is the content of a markdown file rather than a gloss on a line of

@@ -574,6 +574,12 @@ class TestTheCommandOverEachLanguage:
         )
         assert run_cli([".github", "etc"])[1] == _printed([Finding(WORKFLOW, 8)])
 
+    def test_reports_a_comment_in_a_quoted_run_value(
+        self, write_tree: WriteTree, run_cli: RunCli
+    ) -> None:
+        write_tree({WORKFLOW: "workflow/quoted_run_comment"})
+        assert run_cli([".github"])[1] == _printed([Finding(WORKFLOW, 8)])
+
 
 class TestTheCommandWhenATreeWillNotRead:
     def test_a_missing_tree_is_an_error(self, write_tree: WriteTree, run_cli: RunCli) -> None:

@@ -172,6 +172,12 @@ class TestTheCommandOverEachLanguage:
         write_tree({**CLEAN_PROJECT, WORKFLOW: "project/commented_run_script"})
         assert run_cli_subprocess([*FULL_RUN, "--count"])[1] == "1\n"
 
+    def test_counts_a_comment_in_a_quoted_run_value(
+        self, write_tree: WriteTree, run_cli_subprocess: RunCli
+    ) -> None:
+        write_tree({**CLEAN_PROJECT, WORKFLOW: "project/commented_quoted_run"})
+        assert run_cli_subprocess([*FULL_RUN, "--count"])[1] == "1\n"
+
     def test_counts_an_html_like_comment_in_a_javascript_file(
         self, write_tree: WriteTree, run_cli_subprocess: RunCli
     ) -> None:

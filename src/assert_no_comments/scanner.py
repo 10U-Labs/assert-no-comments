@@ -48,6 +48,10 @@ YAML_SUFFIXES = (".yaml", ".yml")
 
 BLOCK_STYLES = frozenset({"|", ">"})
 
+QUOTED_STYLES = frozenset({"'", '"'})
+
+RUN_STYLES = BLOCK_STYLES | QUOTED_STYLES
+
 EXPRESSION = re.compile(r"\$\{\{.*?\}\}")
 
 WINDOWS_LABEL = "windows"
@@ -224,7 +228,7 @@ def _runner_shell(job: yaml.Node) -> str:
 def _run_steps(owner: yaml.Node | None, shell: str) -> Iterator[tuple[yaml.ScalarNode, str]]:
     for step in _members(_entry(owner, "steps")):
         run = _entry(step, "run")
-        if isinstance(run, yaml.ScalarNode) and run.style in BLOCK_STYLES:
+        if isinstance(run, yaml.ScalarNode) and run.style in RUN_STYLES:
             yield run, _scalar(_entry(step, "shell")) or shell
 
 
@@ -246,15 +250,22 @@ SCRIPT_READERS: dict[str, Callable[[str], list[int]]] = {
 }
 
 
+def _script_lines(text: str, run: yaml.ScalarNode, reader: Callable[[str], list[int]]) -> list[int]:
+    if run.style in BLOCK_STYLES:
+        script = text[run.start_mark.index : run.end_mark.index].partition("\n")[2]
+        rows = reader(textwrap.dedent(EXPRESSION.sub(_masked, script)))
+        return [run.start_mark.line + 1 + row for row in rows]
+    value: str = run.value
+    return [run.start_mark.line + 1 for _ in reader(EXPRESSION.sub(_masked, value))]
+
+
 def workflow_comments(text: str) -> list[int]:
     places = yaml_comments(text)
     for document in yaml.compose_all(text):
         for run, shell in _run_scripts(document):
             reader = SCRIPT_READERS.get(next(iter(shell.split()), ""))
             if reader is not None:
-                script = text[run.start_mark.index : run.end_mark.index].partition("\n")[2]
-                rows = reader(textwrap.dedent(EXPRESSION.sub(_masked, script)))
-                places.extend(run.start_mark.line + 1 + row for row in rows)
+                places.extend(_script_lines(text, run, reader))
     return sorted(set(places))
 
 
