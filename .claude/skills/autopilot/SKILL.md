@@ -5,6 +5,10 @@ description: Start, restart or stop the autopilot reminders. Use when the user s
 
 # Autopilot
 
+Every part of the work, reading, searching and filing as well as code, is done
+in the session itself: no Agent or Workflow call takes any part of it, per
+`.claude/memories/working-without-subagents.md`.
+
 Fetch `CronCreate`, `CronList` and `CronDelete` with `ToolSearch` first.
 
 Each standing rule gets a reminder of its own, so no rule can be quietly dropped

@@ -16,6 +16,7 @@
 - [Issues have no fixed form](issues-have-no-fixed-form.md) — no house layout; write each so a fresh session can act on it alone.
 - [Issue sections take headings](issue-sections-take-headings.md) — a `##` heading opens each section, never a bolded lead sentence.
 - [A paragraph wraps at eighty columns](a-paragraph-wraps-at-eighty-columns.md) — in every .md file; headings, tables, fences, frontmatter and index entries keep their width.
+- [Working without subagents](working-without-subagents.md) — no Agent or Workflow call, whatever the work's size; denied in the tracked settings.json, lifted only by the user's own ask.
 - [Every language is read by its own parser](every-language-is-read-by-its-own-parser.md) — a grammar per language, never a character walk; read before adding one.
 - [Test first](test-first.md) — the test before the code; CI observes red and green.
 - [Cover every tier the change touches](cover-every-tier-the-change-touches.md) — unit, integration, e2e; unit and integration each gate on full branch coverage.
