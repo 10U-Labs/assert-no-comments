@@ -18,20 +18,24 @@
 - [A rejected push is fixed forward](a-rejected-push-is-fixed-forward.md) — one follow-up commit answering every failed check, never an amend and force-push.
 - [A red run is fixed by the session that pushed](a-red-run-is-fixed-by-the-session-that-pushed.md) — caused or inherited, in a push of its own before the next piece of work.
 - [CI is the source of truth](ci-is-the-source-of-truth.md) — never run tests, linters or builds locally; a green release run publishes.
+- [CI shows all output](ci-shows-all-output.md) — every step prints everything its tools say, passing or failing: no quiet or count flags, no /dev/null, captured output printed too.
 - [gh search returns at most 1000 issues](gh-search-returns-at-most-1000-issues.md) — `--search` and `--label` go through search; list every open issue with `--limit 10000` and filter labels in `--jq`.
 - [Find a run by the full hash](find-a-run-by-the-full-hash.md) — `gh run list --commit` lists nothing for a short hash; pass `git rev-parse HEAD`.
 - [A wait runs in the background](a-wait-runs-in-the-background.md) — a CI wait is run_in_background or Monitor, never a foreground sleep or gh run watch, so reminders fire; a watch polls at --interval 60.
 - [Only wait while a run is in progress](only-wait-while-a-run-is-in-progress.md) — no diagnosis, edits or commits until it lands, autopilot or not.
 - [Path filters are not shell globs](path-filters-are-not-shell-globs.md) — `'**.md'` reaches files at the root; `**/*.md` does not.
+- [One indivisible problem per issue](one-indivisible-problem-per-issue.md) — one fault with every case of it listed, or one defect with one fix; two problems are split, cases of one fault merged.
 - [An issue states one solution](an-issue-states-one-solution.md) — an issue names one change, never a menu or a question.
 - [Issues have no fixed form](issues-have-no-fixed-form.md) — no house layout; write each so a fresh session can act on it alone.
 - [Issue sections take headings](issue-sections-take-headings.md) — a `##` heading opens each section, never a bolded lead sentence.
+- [Issues define their terms](issues-define-their-terms.md) — say what each file, term and cited source is and why it is there; never a name the reader must already know.
+- [Guarding an issue body rewrite](guarding-an-issue-body-rewrite.md) — chain each command with `&&` and never write back an empty file; a wiped body comes back through GraphQL `userContentEdits`.
+- [Comments from other accounts are ignored](comments-from-other-accounts-are-ignored.md) — only `jdrowne`, the user and Claude posting as them, counts on an issue; anyone else's comment never holds work, raises a decision or gets a reply.
 - [A paragraph wraps at eighty columns](a-paragraph-wraps-at-eighty-columns.md) — in every .md file; headings, tables, fences, frontmatter and index entries keep their width.
 - [Working without subagents](working-without-subagents.md) — no Agent or Workflow call, whatever the work's size; denied in the tracked settings.json, lifted only by the user's own ask.
 - [Every language is read by its own parser](every-language-is-read-by-its-own-parser.md) — a grammar per language, never a character walk; read before adding one.
 - [Test first](test-first.md) — the test before the code; CI observes red and green.
 - [Cover every tier the change touches](cover-every-tier-the-change-touches.md) — unit, integration, e2e; unit and integration each gate on full branch coverage.
-- [A tier is a directory, not a marker](a-tier-is-a-directory-not-a-marker.md) — no pytest.mark restates the directory a test sits in.
 - [A sample is a file, not a literal](a-sample-is-a-file-not-a-literal.md) — source text is a .txt under the tier's samples/, loaded with sample().
 - [Anything importable lives outside conftest](anything-importable-lives-outside-conftest.md) — shared code is lib/test_read_sample and lib/test_trees, reached through PYTHONPATH=lib.
 - [A conftest with no fixture in it stays](a-conftest-with-no-fixture-in-it-stays.md) — the integration and e2e conftest.py are zero bytes and stay.
