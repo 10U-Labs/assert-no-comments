@@ -15,7 +15,7 @@ jobs:
       - name: Install dependencies
         run: npm install -g markdownlint-cli
       - name: markdownlint
-        run: markdownlint --disable MD013 -- '**/*.md'
+        run: markdownlint --dot --disable MD013 -- '**/*.md'
 name: documentation
 on:
   push:
