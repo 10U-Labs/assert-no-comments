@@ -11,8 +11,9 @@
 - [Find a run by the full hash](find-a-run-by-the-full-hash.md) — `gh run list --commit` lists nothing for a short hash; pass `git rev-parse HEAD`.
 - [A wait runs in the background](a-wait-runs-in-the-background.md) — a CI wait is run_in_background or Monitor, never a foreground sleep or gh run watch, so reminders fire.
 - [Path filters are not shell globs](path-filters-are-not-shell-globs.md) — `'**.md'` reaches files at the root; `**/*.md` does not.
-- [An issue states one solution](an-issue-states-one-solution.md) — Proposed Solution names one change, never a menu or a question.
-- [An issue has seven sections](an-issue-has-seven-sections.md) — Problem, the three test tiers, static analysis, regression tests, Proposed Solution.
+- [An issue states one solution](an-issue-states-one-solution.md) — an issue names one change, never a menu or a question.
+- [Issues have no fixed form](issues-have-no-fixed-form.md) — no house layout; write each so a fresh session can act on it alone.
+- [Issue sections take headings](issue-sections-take-headings.md) — a `##` heading opens each section, never a bolded lead sentence.
 - [A paragraph wraps at eighty columns](a-paragraph-wraps-at-eighty-columns.md) — in every .md file; headings, tables, fences, frontmatter and index entries keep their width.
 - [Every language is read by its own parser](every-language-is-read-by-its-own-parser.md) — a grammar per language, never a character walk; read before adding one.
 - [Test first](test-first.md) — the test before the code; CI observes red and green.
