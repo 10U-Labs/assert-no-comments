@@ -4,7 +4,7 @@
 - [A memory holds only what the tree cannot say](a-memory-holds-only-what-the-tree-cannot-say.md) — the reason, never the history; nothing release.yml, README.md, the code or git log answers; this index is the one exception.
 - [The user's words are restated, never copied](the-users-words-are-restated-never-copied.md) — in memories, issues, commits, tasks, feedback drafts and summaries; names stay as given.
 - [Commits go straight to main](commits-go-straight-to-main.md) — no branch, no pull request; CI is the only review.
-- [Solving an issue ends at the push](solving-an-issue-ends-at-the-push.md) — a request to solve an issue includes its commit and push; never wait to be told to push.
+- [A requested change ends at the push](a-requested-change-ends-at-the-push.md) — any change the user asks for, an issue's fix or not, is committed and pushed without asking or waiting to be told.
 - [A path is staged by name](a-path-is-staged-by-name.md) — never `git add -A` or `git add .`; the lock file is ignored only in this clone.
 - [git add stages nothing when one path is missing](git-add-stages-nothing-when-one-path-is-missing.md) — a removal goes to `git rm`, never on the `git add` line.
 - [The index is read back before committing](the-index-is-read-back-before-committing.md) — one `git status --porcelain` between staging and committing.
