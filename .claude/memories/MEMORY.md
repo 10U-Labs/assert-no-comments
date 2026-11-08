@@ -36,6 +36,6 @@
 - [Every language is read by its own parser](every-language-is-read-by-its-own-parser.md) — a grammar per language, never a character walk; read before adding one.
 - [Test first](test-first.md) — the test before the code; CI observes red and green.
 - [Cover every tier the change touches](cover-every-tier-the-change-touches.md) — unit, integration, e2e; unit and integration each gate on full branch coverage.
-- [A sample is a file, not a literal](a-sample-is-a-file-not-a-literal.md) — source text is a .txt under the tier's samples/, loaded with sample().
+- [A sample is a file, not a literal](a-sample-is-a-file-not-a-literal.md) — source text is a file under the tier's samples/ with the ending of the file it stands for, loaded with sample(); every checker leaves the samples out.
 - [Anything importable lives outside conftest](anything-importable-lives-outside-conftest.md) — shared code is lib/test_read_sample and lib/test_trees, reached through PYTHONPATH=lib.
 - [A conftest with no fixture in it stays](a-conftest-with-no-fixture-in-it-stays.md) — the integration and e2e conftest.py are zero bytes and stay.

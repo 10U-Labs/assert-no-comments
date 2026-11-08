@@ -15,6 +15,7 @@ jobs:
       - name: assert-no-comments
         uses: ./
         with:
+          exclude: "*/test/*/samples/*"
           trees: ${{ github.workspace }}
           verbose: "true"
   assert-no-inline-directives:
@@ -68,6 +69,7 @@ jobs:
         run: >-
           assert-one-assert-per-pytest
           --verbose
+          --exclude "*/samples/*"
           ${{ github.workspace }}/test
   assert-python-definition-is-used:
     runs-on: ubuntu-latest
@@ -87,6 +89,7 @@ jobs:
           --search-in src
           --search-in test
           --search-in lib
+          --exclude "*/samples/*"
           --verbose
   e2e-tests:
     runs-on: ubuntu-latest
@@ -149,6 +152,7 @@ jobs:
       - name: jscpd (test)
         run: >-
           jscpd --pattern "**/*.py" --threshold 0 --reporters console
+          --ignore "**/samples/**"
           test/ lib/
   mypy-src:
     runs-on: ubuntu-latest
@@ -177,7 +181,8 @@ jobs:
       - name: mypy (test)
         run: >-
           MYPYPATH=lib
-          python3 -m mypy --explicit-package-bases test/ lib/
+          python3 -m mypy --explicit-package-bases --exclude "/samples/"
+          test/ lib/
   pylint-src:
     runs-on: ubuntu-latest
     steps:
@@ -212,6 +217,7 @@ jobs:
         run: >-
           PYTHONPATH=lib
           python3 -m pylint --recursive=y test/ lib/
+          --ignore-paths=".*/samples/.*"
           --disable=missing-class-docstring
           --disable=missing-function-docstring
           --disable=missing-module-docstring
@@ -307,9 +313,10 @@ jobs:
           KEY_ORDERING='key-ordering: enable'
           TRUTHY='truthy: {allowed-values: ["true", "false", "on"]}'
           RULES="$EMPTY_LINES, $KEY_ORDERING, $TRUTHY"
+          IGNORE="ignore: 'test/*/samples/'"
           shopt -s globstar
           yamllint --strict --format github \
-            --config-data "{extends: default, rules: {$RULES}}" \
+            --config-data "{extends: default, $IGNORE, rules: {$RULES}}" \
             *.yml **/*.yml
 name: release
 on:

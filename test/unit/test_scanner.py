@@ -78,70 +78,70 @@ def sample(name: str) -> str:
 
 class TestPythonComments:
     def test_a_comment_on_a_line_of_its_own_is_reported(self) -> None:
-        assert python_comments(sample("python/comment_on_line_own_reported")) == [1]
+        assert python_comments(sample("python/comment_on_line_own_reported.py")) == [1]
 
     def test_a_comment_after_code_on_the_same_line_is_reported(self) -> None:
-        assert python_comments(sample("python/comment_after_code_on_same_line_reported")) == [2]
+        assert python_comments(sample("python/comment_after_code_on_same_line_reported.py")) == [2]
 
     def test_a_hash_inside_a_string_is_not_reported(self) -> None:
-        assert python_comments(sample("python/hash_inside_string_reported")) == []
+        assert python_comments(sample("python/hash_inside_string_reported.py")) == []
 
     def test_a_shebang_on_the_first_line_is_not_reported(self) -> None:
-        assert python_comments(sample("python/shebang_spared")) == []
+        assert python_comments(sample("python/shebang_spared.py")) == []
 
     def test_a_shebang_on_the_second_line_is_reported(self) -> None:
-        assert python_comments(sample("python/shebang_on_second_line_reported")) == [2]
+        assert python_comments(sample("python/shebang_on_second_line_reported.py")) == [2]
 
     def test_a_shebang_after_a_space_is_reported(self) -> None:
-        assert python_comments(sample("python/indented_shebang_reported")) == [1]
+        assert python_comments(sample("python/indented_shebang_reported.py")) == [1]
 
     def test_a_first_line_with_a_space_before_the_bang_is_reported(self) -> None:
-        assert python_comments(sample("python/spaced_bang_reported")) == [1]
+        assert python_comments(sample("python/spaced_bang_reported.py")) == [1]
 
     def test_a_comment_after_the_shebang_is_reported(self) -> None:
-        assert python_comments(sample("python/comment_after_shebang_reported")) == [2]
+        assert python_comments(sample("python/comment_after_shebang_reported.py")) == [2]
 
     def test_a_module_docstring_is_reported(self) -> None:
-        assert python_comments(sample("python/module_docstring_reported")) == [1]
+        assert python_comments(sample("python/module_docstring_reported.py")) == [1]
 
     def test_a_function_docstring_is_reported(self) -> None:
-        assert python_comments(sample("python/function_docstring_reported")) == [2]
+        assert python_comments(sample("python/function_docstring_reported.py")) == [2]
 
     def test_a_class_docstring_is_reported(self) -> None:
-        assert python_comments(sample("python/class_docstring_reported")) == [2]
+        assert python_comments(sample("python/class_docstring_reported.py")) == [2]
 
     def test_an_async_function_docstring_is_reported(self) -> None:
-        assert python_comments(sample("python/async_function_docstring_reported")) == [2]
+        assert python_comments(sample("python/async_function_docstring_reported.py")) == [2]
 
     def test_a_file_with_nothing_in_it_reports_nothing(self) -> None:
         assert python_comments("") == []
 
     def test_a_statement_that_is_not_a_docstring_is_not_reported(self) -> None:
-        assert python_comments(sample("python/statement_docstring_reported")) == []
+        assert python_comments(sample("python/statement_docstring_reported.py")) == []
 
     def test_a_number_standing_alone_is_not_read_as_a_docstring(self) -> None:
-        assert python_comments(sample("python/number_standing_read_as_docstring")) == []
+        assert python_comments(sample("python/number_standing_read_as_docstring.py")) == []
 
     def test_a_string_that_is_not_the_first_statement_is_not_reported(self) -> None:
-        assert python_comments(sample("python/string_first_statement_reported")) == []
+        assert python_comments(sample("python/string_first_statement_reported.py")) == []
 
 
 class TestYamlComments:
     def test_a_comment_is_reported(self) -> None:
-        assert yaml_comments(sample("yaml/comment_reported")) == [3]
+        assert yaml_comments(sample("yaml/comment_reported.yml")) == [3]
 
     def test_a_hash_inside_a_block_scalar_is_not_reported(self) -> None:
-        assert yaml_comments(sample("yaml/hash_inside_block_scalar_reported")) == []
+        assert yaml_comments(sample("yaml/hash_inside_block_scalar_reported.yml")) == []
 
     def test_a_hash_inside_a_quoted_string_is_not_reported(self) -> None:
-        assert yaml_comments(sample("yaml/hash_inside_quoted_string_reported")) == []
+        assert yaml_comments(sample("yaml/hash_inside_quoted_string_reported.yml")) == []
 
     def test_a_file_with_nothing_in_it_reports_nothing(self) -> None:
         assert yaml_comments("") == []
 
 
 def _workflow(name: str) -> list[int]:
-    return workflow_comments(sample(f"workflow/{name}"))
+    return workflow_comments(sample(f"workflow/{name}.yml"))
 
 
 class TestWorkflowComments:
@@ -223,289 +223,293 @@ class TestWorkflowShells:
 
 class TestHclComments:
     def test_a_hash_comment_is_reported(self) -> None:
-        assert hcl_comments(sample("hcl/hash_comment_reported")) == [1]
+        assert hcl_comments(sample("hcl/hash_comment_reported.hcl")) == [1]
 
     def test_a_double_slash_comment_is_reported(self) -> None:
-        assert hcl_comments(sample("hcl/double_slash_comment_reported")) == [2]
+        assert hcl_comments(sample("hcl/double_slash_comment_reported.hcl")) == [2]
 
     def test_a_block_comment_is_reported(self) -> None:
-        assert hcl_comments(sample("hcl/block_comment_reported")) == [2]
+        assert hcl_comments(sample("hcl/block_comment_reported.hcl")) == [2]
 
     def test_a_hash_inside_a_string_is_not_reported(self) -> None:
-        assert hcl_comments(sample("hcl/hash_inside_string_reported")) == []
+        assert hcl_comments(sample("hcl/hash_inside_string_reported.hcl")) == []
 
     def test_an_escaped_quote_does_not_end_a_string(self) -> None:
-        assert hcl_comments(sample("hcl/escaped_quote_end_string")) == []
+        assert hcl_comments(sample("hcl/escaped_quote_end_string.hcl")) == []
 
     def test_a_hash_inside_a_heredoc_is_not_reported(self) -> None:
-        assert hcl_comments(sample("hcl/hash_inside_heredoc_reported")) == []
+        assert hcl_comments(sample("hcl/hash_inside_heredoc_reported.hcl")) == []
 
     def test_a_file_that_will_not_parse_still_reports_what_it_can(self) -> None:
-        assert hcl_comments(sample("hcl/file_will_parse_reports")) == [1]
+        assert hcl_comments(sample("hcl/file_will_parse_reports.hcl")) == [1]
 
 
 class TestJavascriptComments:
     def test_a_comment_is_reported(self) -> None:
-        assert javascript_comments(sample("javascript/comment_reported")) == [2]
+        assert javascript_comments(sample("javascript/comment_reported.js")) == [2]
 
     def test_a_block_comment_is_reported(self) -> None:
-        assert javascript_comments(sample("javascript/block_comment_reported")) == [2]
+        assert javascript_comments(sample("javascript/block_comment_reported.js")) == [2]
 
     def test_an_html_like_opener_is_reported(self) -> None:
-        assert javascript_comments(sample("javascript/html_comment_opener_reported")) == [2]
+        assert javascript_comments(sample("javascript/html_comment_opener_reported.js")) == [2]
 
     def test_an_html_like_closer_at_the_start_of_a_line_is_reported(self) -> None:
-        assert javascript_comments(sample("javascript/html_comment_closer_reported")) == [2]
+        assert javascript_comments(sample("javascript/html_comment_closer_reported.js")) == [2]
 
     def test_an_html_like_opener_after_code_is_reported(self) -> None:
-        assert javascript_comments(sample("javascript/html_comment_after_code_reported")) == [2]
+        assert javascript_comments(sample("javascript/html_comment_after_code_reported.js")) == [2]
 
     def test_an_html_like_opener_inside_a_string_is_not_reported(self) -> None:
-        assert javascript_comments(sample("javascript/html_comment_opener_inside_string")) == []
+        assert javascript_comments(sample("javascript/html_comment_opener_inside_string.js")) == []
 
     def test_a_decrement_before_a_greater_than_is_not_reported(self) -> None:
-        assert javascript_comments(sample("javascript/decrement_before_greater_than")) == []
+        assert javascript_comments(sample("javascript/decrement_before_greater_than.js")) == []
 
     def test_a_double_slash_inside_a_string_is_not_reported(self) -> None:
-        assert javascript_comments(sample("javascript/double_slash_inside_string_reported")) == []
+        text = sample("javascript/double_slash_inside_string_reported.js")
+        assert javascript_comments(text) == []
 
     def test_a_double_slash_inside_a_template_literal_is_not_reported(self) -> None:
-        assert javascript_comments(sample("javascript/double_slash_inside_template_literal")) == []
+        text = sample("javascript/double_slash_inside_template_literal.js")
+        assert javascript_comments(text) == []
 
     def test_a_double_slash_inside_a_pattern_is_not_reported(self) -> None:
-        assert javascript_comments(sample("javascript/double_slash_inside_pattern_reported")) == []
+        text = sample("javascript/double_slash_inside_pattern_reported.js")
+        assert javascript_comments(text) == []
 
     def test_a_slash_inside_a_character_class_does_not_end_the_pattern(self) -> None:
-        assert javascript_comments(sample("javascript/slash_inside_character_class_end")) == []
+        assert javascript_comments(sample("javascript/slash_inside_character_class_end.js")) == []
 
     def test_a_comment_after_a_pattern_is_reported(self) -> None:
-        assert javascript_comments(sample("javascript/comment_after_pattern_reported")) == [1]
+        assert javascript_comments(sample("javascript/comment_after_pattern_reported.js")) == [1]
 
     def test_a_comment_after_a_division_is_reported(self) -> None:
-        assert javascript_comments(sample("javascript/comment_after_division_reported")) == [1]
+        assert javascript_comments(sample("javascript/comment_after_division_reported.js")) == [1]
 
     def test_a_comment_after_a_closing_element_is_reported(self) -> None:
-        assert javascript_comments(sample("javascript/comment_after_closing_element")) == [4]
+        assert javascript_comments(sample("javascript/comment_after_closing_element.js")) == [4]
 
     def test_a_comment_after_a_self_closing_element_is_reported(self) -> None:
-        assert javascript_comments(sample("javascript/comment_after_self_closing_element")) == [1]
+        text = sample("javascript/comment_after_self_closing_element.js")
+        assert javascript_comments(text) == [1]
 
     def test_a_comment_braced_inside_an_element_is_reported(self) -> None:
-        assert javascript_comments(sample("javascript/comment_braced_inside_element")) == [3]
+        assert javascript_comments(sample("javascript/comment_braced_inside_element.js")) == [3]
 
     def test_markers_in_the_text_of_an_element_are_not_reported(self) -> None:
-        assert javascript_comments(sample("javascript/markers_in_text_element_reported")) == []
+        assert javascript_comments(sample("javascript/markers_in_text_element_reported.js")) == []
 
     def test_a_comment_on_the_last_line_with_no_line_break_is_reported(self) -> None:
         assert javascript_comments("// why") == [1]
 
     def test_a_file_that_will_not_parse_still_reports_what_it_can(self) -> None:
-        assert javascript_comments(sample("javascript/file_will_parse_reports")) == [2]
+        assert javascript_comments(sample("javascript/file_will_parse_reports.js")) == [2]
 
 
 class TestTypescriptComments:
     def test_a_comment_is_reported(self) -> None:
-        assert typescript_comments(sample("typescript/comment_reported")) == [1]
+        assert typescript_comments(sample("typescript/comment_reported.ts")) == [1]
 
     def test_a_documentation_block_is_reported(self) -> None:
-        assert typescript_comments(sample("typescript/documentation_block_reported")) == [2]
+        assert typescript_comments(sample("typescript/documentation_block_reported.ts")) == [2]
 
     def test_a_type_assertion_does_not_hide_the_comment_after_it(self) -> None:
-        assert typescript_comments(sample("typescript/type_assertion_hide_comment_after")) == [2]
+        assert typescript_comments(sample("typescript/type_assertion_hide_comment_after.ts")) == [2]
 
     def test_an_html_like_comment_is_reported(self) -> None:
-        assert typescript_comments(sample("typescript/html_comment_reported")) == [2]
+        assert typescript_comments(sample("typescript/html_comment_reported.ts")) == [2]
 
 
 class TestTsxComments:
     def test_a_comment_is_reported(self) -> None:
-        assert tsx_comments(sample("tsx/comment_reported")) == [2]
+        assert tsx_comments(sample("tsx/comment_reported.tsx")) == [2]
 
     def test_a_comment_after_a_closing_element_is_reported(self) -> None:
-        assert tsx_comments(sample("tsx/comment_after_closing_element_reported")) == [4]
+        assert tsx_comments(sample("tsx/comment_after_closing_element_reported.tsx")) == [4]
 
     def test_a_comment_braced_inside_an_element_is_reported(self) -> None:
-        assert tsx_comments(sample("tsx/comment_braced_inside_element_reported")) == [3]
+        assert tsx_comments(sample("tsx/comment_braced_inside_element_reported.tsx")) == [3]
 
     def test_an_html_like_comment_is_reported(self) -> None:
-        assert tsx_comments(sample("tsx/html_comment_reported")) == [2]
+        assert tsx_comments(sample("tsx/html_comment_reported.tsx")) == [2]
 
 
 class TestCppComments:
     def test_a_line_comment_is_reported(self) -> None:
-        assert cpp_comments(sample("cpp/line_comment_reported")) == [2]
+        assert cpp_comments(sample("cpp/line_comment_reported.cpp")) == [2]
 
     def test_a_block_comment_is_reported_at_its_first_line(self) -> None:
-        assert cpp_comments(sample("cpp/block_comment_reported_first_line")) == [2]
+        assert cpp_comments(sample("cpp/block_comment_reported_first_line.cpp")) == [2]
 
     def test_a_triple_slash_comment_is_reported(self) -> None:
-        assert cpp_comments(sample("cpp/triple_slash_comment_reported")) == [1]
+        assert cpp_comments(sample("cpp/triple_slash_comment_reported.cpp")) == [1]
 
     def test_a_documentation_block_is_reported(self) -> None:
-        assert cpp_comments(sample("cpp/documentation_block_reported")) == [2]
+        assert cpp_comments(sample("cpp/documentation_block_reported.cpp")) == [2]
 
     def test_a_comment_after_code_on_the_same_line_is_reported(self) -> None:
-        assert cpp_comments(sample("cpp/comment_after_code_reported")) == [2]
+        assert cpp_comments(sample("cpp/comment_after_code_reported.cpp")) == [2]
 
     def test_a_comment_continued_over_a_backslash_is_reported_once(self) -> None:
-        assert cpp_comments(sample("cpp/comment_continued_over_backslash")) == [1]
+        assert cpp_comments(sample("cpp/comment_continued_over_backslash.cpp")) == [1]
 
     def test_a_comment_in_a_define_body_is_reported(self) -> None:
-        assert cpp_comments(sample("cpp/comment_in_define_body_reported")) == [2]
+        assert cpp_comments(sample("cpp/comment_in_define_body_reported.cpp")) == [2]
 
     def test_a_comment_on_the_continued_line_of_a_define_is_reported(self) -> None:
-        assert cpp_comments(sample("cpp/comment_continued_define_line")) == [2]
+        assert cpp_comments(sample("cpp/comment_continued_define_line.cpp")) == [2]
 
     def test_a_block_comment_in_a_define_body_is_reported(self) -> None:
-        assert cpp_comments(sample("cpp/block_comment_in_define_body")) == [2]
+        assert cpp_comments(sample("cpp/block_comment_in_define_body.cpp")) == [2]
 
     def test_a_double_slash_inside_a_define_string_is_not_reported(self) -> None:
-        assert cpp_comments(sample("cpp/double_slash_in_define_string")) == []
+        assert cpp_comments(sample("cpp/double_slash_in_define_string.cpp")) == []
 
     def test_the_grammar_opens_a_block_comment_inside_a_define_string(self) -> None:
-        assert cpp_comments(sample("cpp/block_opened_in_define_string")) == [1]
+        assert cpp_comments(sample("cpp/block_opened_in_define_string.cpp")) == [1]
 
     def test_a_double_slash_inside_a_string_is_not_reported(self) -> None:
-        assert cpp_comments(sample("cpp/double_slash_in_string")) == []
+        assert cpp_comments(sample("cpp/double_slash_in_string.cpp")) == []
 
     def test_a_double_slash_inside_a_raw_string_is_not_reported(self) -> None:
-        assert cpp_comments(sample("cpp/double_slash_in_raw_string")) == []
+        assert cpp_comments(sample("cpp/double_slash_in_raw_string.cpp")) == []
 
     def test_a_raw_string_delimiter_keeps_its_body_open_past_a_quote(self) -> None:
-        assert cpp_comments(sample("cpp/raw_string_delimiter_keeps_body")) == []
+        assert cpp_comments(sample("cpp/raw_string_delimiter_keeps_body.cpp")) == []
 
     def test_a_slash_character_literal_is_not_reported(self) -> None:
-        assert cpp_comments(sample("cpp/slash_character_literal")) == []
+        assert cpp_comments(sample("cpp/slash_character_literal.cpp")) == []
 
     def test_a_block_opener_inside_a_string_is_not_reported(self) -> None:
-        assert cpp_comments(sample("cpp/block_opener_in_string")) == []
+        assert cpp_comments(sample("cpp/block_opener_in_string.cpp")) == []
 
     def test_a_file_that_will_not_parse_still_reports_what_it_can(self) -> None:
-        assert cpp_comments(sample("cpp/file_will_parse_reports")) == [1, 3]
+        assert cpp_comments(sample("cpp/file_will_parse_reports.cpp")) == [1, 3]
 
 
 class TestNamespaceEndComments:
     def test_the_end_of_a_named_namespace_is_spared(self) -> None:
-        assert cpp_comments(sample("cpp/ends_named_namespace")) == []
+        assert cpp_comments(sample("cpp/ends_named_namespace.cpp")) == []
 
     def test_an_end_naming_another_namespace_is_reported(self) -> None:
-        assert cpp_comments(sample("cpp/names_another_namespace")) == [4]
+        assert cpp_comments(sample("cpp/names_another_namespace.cpp")) == [4]
 
     def test_an_end_leaving_out_the_name_is_reported(self) -> None:
-        assert cpp_comments(sample("cpp/leaves_out_name")) == [4]
+        assert cpp_comments(sample("cpp/leaves_out_name.cpp")) == [4]
 
     def test_a_block_comment_ending_a_namespace_is_reported(self) -> None:
-        assert cpp_comments(sample("cpp/block_comment_ends_namespace")) == [4]
+        assert cpp_comments(sample("cpp/block_comment_ends_namespace.cpp")) == [4]
 
     def test_an_end_spaced_otherwise_is_reported(self) -> None:
-        assert cpp_comments(sample("cpp/spaced_namespace_end")) == [4]
+        assert cpp_comments(sample("cpp/spaced_namespace_end.cpp")) == [4]
 
     def test_an_end_with_more_words_is_reported(self) -> None:
-        assert cpp_comments(sample("cpp/namespace_end_more_words")) == [4]
+        assert cpp_comments(sample("cpp/namespace_end_more_words.cpp")) == [4]
 
     def test_an_end_on_the_line_after_the_brace_is_reported(self) -> None:
-        assert cpp_comments(sample("cpp/namespace_end_next_line")) == [5]
+        assert cpp_comments(sample("cpp/namespace_end_next_line.cpp")) == [5]
 
     def test_the_end_of_an_anonymous_namespace_is_spared(self) -> None:
-        assert cpp_comments(sample("cpp/ends_anonymous_namespace")) == []
+        assert cpp_comments(sample("cpp/ends_anonymous_namespace.cpp")) == []
 
     def test_a_name_on_the_end_of_an_anonymous_namespace_is_reported(self) -> None:
-        assert cpp_comments(sample("cpp/names_namespace_anonymous_one_closes")) == [4]
+        assert cpp_comments(sample("cpp/names_namespace_anonymous_one_closes.cpp")) == [4]
 
     def test_the_end_of_a_nested_name_namespace_is_spared(self) -> None:
-        assert cpp_comments(sample("cpp/ends_nested_name_namespace")) == []
+        assert cpp_comments(sample("cpp/ends_nested_name_namespace.cpp")) == []
 
     def test_the_end_of_an_inline_namespace_is_spared(self) -> None:
-        assert cpp_comments(sample("cpp/ends_inline_namespace")) == []
+        assert cpp_comments(sample("cpp/ends_inline_namespace.cpp")) == []
 
     def test_the_end_of_a_namespace_nested_in_another_is_spared(self) -> None:
-        assert cpp_comments(sample("cpp/ends_namespace_nested_another")) == []
+        assert cpp_comments(sample("cpp/ends_namespace_nested_another.cpp")) == []
 
     def test_the_end_of_a_namespace_with_a_one_line_body_is_spared(self) -> None:
-        assert cpp_comments(sample("cpp/ends_namespace_one_line_body")) == []
+        assert cpp_comments(sample("cpp/ends_namespace_one_line_body.cpp")) == []
 
     def test_a_struct_end_named_like_a_namespace_is_reported(self) -> None:
-        assert cpp_comments(sample("cpp/struct_end_named_namespace")) == [4]
+        assert cpp_comments(sample("cpp/struct_end_named_namespace.cpp")) == [4]
 
     def test_a_function_end_named_like_a_namespace_is_reported(self) -> None:
-        assert cpp_comments(sample("cpp/function_end_named_namespace")) == [4]
+        assert cpp_comments(sample("cpp/function_end_named_namespace.cpp")) == [4]
 
     def test_an_include_guard_end_is_reported(self) -> None:
-        assert cpp_comments(sample("cpp/include_guard_end")) == [7]
+        assert cpp_comments(sample("cpp/include_guard_end.cpp")) == [7]
 
 
 class TestCComments:
     def test_a_line_comment_is_reported(self) -> None:
-        assert c_comments(sample("c/line_comment_reported")) == [2]
+        assert c_comments(sample("c/line_comment_reported.c")) == [2]
 
     def test_a_block_comment_is_reported_at_its_first_line(self) -> None:
-        assert c_comments(sample("c/block_comment_reported_first_line")) == [2]
+        assert c_comments(sample("c/block_comment_reported_first_line.c")) == [2]
 
     def test_a_comment_after_code_on_the_same_line_is_reported(self) -> None:
-        assert c_comments(sample("c/comment_after_code_reported")) == [2]
+        assert c_comments(sample("c/comment_after_code_reported.c")) == [2]
 
     def test_a_comment_in_a_define_body_is_reported(self) -> None:
-        assert c_comments(sample("c/comment_in_define_body_reported")) == [2]
+        assert c_comments(sample("c/comment_in_define_body_reported.c")) == [2]
 
     def test_a_comment_on_the_continued_line_of_a_define_is_reported(self) -> None:
-        assert c_comments(sample("c/comment_continued_define_line")) == [2]
+        assert c_comments(sample("c/comment_continued_define_line.c")) == [2]
 
     def test_the_grammar_opens_a_block_comment_inside_a_define_string(self) -> None:
-        assert c_comments(sample("c/block_opened_in_define_string")) == [1]
+        assert c_comments(sample("c/block_opened_in_define_string.c")) == [1]
 
     def test_a_double_slash_inside_a_string_is_not_reported(self) -> None:
-        assert c_comments(sample("c/double_slash_in_string")) == []
+        assert c_comments(sample("c/double_slash_in_string.c")) == []
 
     def test_a_double_slash_inside_a_define_string_is_not_reported(self) -> None:
-        assert c_comments(sample("c/double_slash_in_define_string")) == []
+        assert c_comments(sample("c/double_slash_in_define_string.c")) == []
 
     def test_a_slash_character_literal_is_not_reported(self) -> None:
-        assert c_comments(sample("c/slash_character_literal")) == []
+        assert c_comments(sample("c/slash_character_literal.c")) == []
 
     def test_a_block_opener_inside_a_string_is_not_reported(self) -> None:
-        assert c_comments(sample("c/block_opener_in_string")) == []
+        assert c_comments(sample("c/block_opener_in_string.c")) == []
 
     def test_a_comment_beside_a_name_cpp_reserves_is_reported(self) -> None:
-        assert c_comments(sample("c/comment_beside_cpp_keyword_name")) == [1]
+        assert c_comments(sample("c/comment_beside_cpp_keyword_name.c")) == [1]
 
 
 class TestShellComments:
     def test_a_line_comment_is_reported(self) -> None:
-        assert shell_comments(sample("shell/line_comment_reported")) == [2]
+        assert shell_comments(sample("shell/line_comment_reported.sh")) == [2]
 
     def test_a_comment_after_a_command_on_the_same_line_is_reported(self) -> None:
-        assert shell_comments(sample("shell/comment_after_command_reported")) == [1]
+        assert shell_comments(sample("shell/comment_after_command_reported.sh")) == [1]
 
     def test_a_shebang_on_the_first_line_is_not_reported(self) -> None:
-        assert shell_comments(sample("shell/shebang_spared")) == []
+        assert shell_comments(sample("shell/shebang_spared.sh")) == []
 
     def test_a_shebang_on_the_second_line_is_reported(self) -> None:
-        assert shell_comments(sample("shell/shebang_on_second_line_reported")) == [2]
+        assert shell_comments(sample("shell/shebang_on_second_line_reported.sh")) == [2]
 
     def test_a_shebang_after_a_space_is_reported(self) -> None:
-        assert shell_comments(sample("shell/indented_shebang_reported")) == [1]
+        assert shell_comments(sample("shell/indented_shebang_reported.sh")) == [1]
 
     def test_a_first_line_with_a_space_before_the_bang_is_reported(self) -> None:
-        assert shell_comments(sample("shell/spaced_bang_reported")) == [1]
+        assert shell_comments(sample("shell/spaced_bang_reported.sh")) == [1]
 
     def test_a_hash_inside_a_double_quoted_string_is_not_reported(self) -> None:
-        assert shell_comments(sample("shell/hash_in_double_quotes")) == []
+        assert shell_comments(sample("shell/hash_in_double_quotes.sh")) == []
 
     def test_a_hash_inside_a_single_quoted_string_is_not_reported(self) -> None:
-        assert shell_comments(sample("shell/hash_in_single_quotes")) == []
+        assert shell_comments(sample("shell/hash_in_single_quotes.sh")) == []
 
     def test_a_hash_inside_a_word_is_not_reported(self) -> None:
-        assert shell_comments(sample("shell/hash_in_word")) == []
+        assert shell_comments(sample("shell/hash_in_word.sh")) == []
 
     def test_a_hash_inside_a_here_document_is_not_reported(self) -> None:
-        assert shell_comments(sample("shell/hash_in_here_document")) == []
+        assert shell_comments(sample("shell/hash_in_here_document.sh")) == []
 
     def test_a_hash_inside_a_parameter_expansion_is_not_reported(self) -> None:
-        assert shell_comments(sample("shell/hash_in_parameter_expansion")) == []
+        assert shell_comments(sample("shell/hash_in_parameter_expansion.sh")) == []
 
 
 def _hdl(name: str) -> list[int]:
-    return systemverilog_comments(sample(f"systemverilog/{name}"))
+    return systemverilog_comments(sample(f"systemverilog/{name}.sv"))
 
 
 class TestSystemverilogComments:
@@ -557,10 +561,12 @@ class TestSystemverilogComments:
 
 class TestParsedComments:
     def test_a_grammar_named_directly_reads_its_comments(self) -> None:
-        assert parsed_comments(sample("parsed/grammar_named_directly_reads_comments"), HCL) == [1]
+        text = sample("parsed/grammar_named_directly_reads_comments.hcl")
+        assert parsed_comments(text, HCL) == [1]
 
     def test_two_comments_on_one_line_are_reported_once(self) -> None:
-        assert javascript_comments(sample("parsed/two_comments_on_one_line_reported_once")) == [1]
+        text = sample("parsed/two_comments_on_one_line_reported_once.js")
+        assert javascript_comments(text) == [1]
 
 
 class TestReaderFor:
@@ -642,22 +648,22 @@ class TestReaderForGithubActions:
 
 class TestCommentsIn:
     def test_a_finding_names_the_file_and_the_line(self) -> None:
-        found = comments_in("src/counting.py", sample("comments_in/finding_names"))
+        found = comments_in("src/counting.py", sample("comments_in/finding_names.py"))
         assert found == [Finding("src/counting.py", 2)]
 
     def test_a_file_no_reader_speaks_is_left_alone(self) -> None:
-        assert comments_in("README.md", sample("comments_in/file_no_reader_speaks_left")) == []
+        assert comments_in("README.md", sample("comments_in/file_no_reader_speaks_left.md")) == []
 
     def test_a_file_that_will_not_parse_is_unreadable(self) -> None:
         with pytest.raises(Unreadable):
-            comments_in("src/counting.py", sample("comments_in/file_will_parse_unreadable"))
+            comments_in("src/counting.py", sample("comments_in/file_will_parse_unreadable.py"))
 
     def test_a_yaml_file_that_will_not_parse_is_unreadable(self) -> None:
         with pytest.raises(Unreadable):
-            comments_in("etc/config.yml", sample("comments_in/yaml_file_will_parse_unreadable"))
+            comments_in("etc/config.yml", sample("comments_in/yaml_file_will_parse_unreadable.yml"))
 
     def test_a_workflow_whose_python_step_will_not_parse_is_unreadable(self) -> None:
-        text = sample("comments_in/workflow_python_step_will_not_parse")
+        text = sample("comments_in/workflow_python_step_will_not_parse.yml")
         with pytest.raises(Unreadable):
             comments_in(".github/workflows/build.yml", text)
 

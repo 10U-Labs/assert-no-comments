@@ -15,13 +15,13 @@ VENDORED = "src/www/spa/vendor/leaflet.js"
 NOTES = "src/notes.md"
 
 CLEAN_PROJECT = {
-    SOURCE: "project/clean_python",
-    WORKFLOW: "project/clean_workflow",
-    VENDORED: "project/vendored_javascript",
-    NOTES: "project/prose",
+    SOURCE: "project/clean_python.py",
+    WORKFLOW: "project/clean_workflow.yml",
+    VENDORED: "project/vendored_javascript.js",
+    NOTES: "project/prose.md",
 }
 
-PROJECT = {**CLEAN_PROJECT, SOURCE: "project/commented_python"}
+PROJECT = {**CLEAN_PROJECT, SOURCE: "project/commented_python.py"}
 
 EXCLUDE_VENDORED = "src/www/spa/vendor/*"
 

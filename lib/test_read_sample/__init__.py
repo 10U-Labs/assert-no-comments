@@ -7,4 +7,4 @@ if TYPE_CHECKING:
 
 
 def read_sample(directory: Path, name: str) -> str:
-    return (directory / "samples" / f"{name}.txt").read_text(encoding="utf-8")
+    return (directory / "samples" / name).read_text(encoding="utf-8")

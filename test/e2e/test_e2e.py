@@ -59,19 +59,19 @@ class TestTheCommandAsAStepRunsIt:
     def test_reads_a_workflow_file(
         self, write_tree: WriteTree, run_cli_subprocess: RunCli
     ) -> None:
-        write_tree({**CLEAN_PROJECT, WORKFLOW: "project/commented_workflow"})
+        write_tree({**CLEAN_PROJECT, WORKFLOW: "project/commented_workflow.yml"})
         assert WORKFLOW in run_cli_subprocess(FULL_RUN)[1]
 
     def test_reads_a_typescript_component(
         self, write_tree: WriteTree, run_cli_subprocess: RunCli
     ) -> None:
-        write_tree({**CLEAN_PROJECT, COMPONENT: "project/commented_tsx"})
+        write_tree({**CLEAN_PROJECT, COMPONENT: "project/commented_tsx.tsx"})
         assert COMPONENT in run_cli_subprocess(FULL_RUN)[1]
 
     def test_counts_every_comment_a_component_carries(
         self, write_tree: WriteTree, run_cli_subprocess: RunCli
     ) -> None:
-        write_tree({**CLEAN_PROJECT, COMPONENT: "project/commented_tsx"})
+        write_tree({**CLEAN_PROJECT, COMPONENT: "project/commented_tsx.tsx"})
         assert run_cli_subprocess([*FULL_RUN, "--count"])[1] == "3\n"
 
     def test_leaves_the_vendored_javascript_alone(
@@ -113,13 +113,13 @@ class TestTheCommandAsAStepRunsIt:
     def test_a_broken_file_is_an_error(
         self, write_tree: WriteTree, run_cli_subprocess: RunCli
     ) -> None:
-        write_tree({**CLEAN_PROJECT, "src/broken.py": "project/broken_python"})
+        write_tree({**CLEAN_PROJECT, "src/broken.py": "project/broken_python.py"})
         assert run_cli_subprocess(FULL_RUN)[0] == 2
 
     def test_a_broken_file_is_named(
         self, write_tree: WriteTree, run_cli_subprocess: RunCli
     ) -> None:
-        write_tree({**CLEAN_PROJECT, "src/broken.py": "project/broken_python"})
+        write_tree({**CLEAN_PROJECT, "src/broken.py": "project/broken_python.py"})
         assert "Could not parse src/broken.py" in run_cli_subprocess(FULL_RUN)[2]
 
     def test_verbose_summarises_the_run(
@@ -139,47 +139,47 @@ class TestTheCommandOverEachLanguage:
     def test_reads_a_c_file(
         self, write_tree: WriteTree, run_cli_subprocess: RunCli
     ) -> None:
-        write_tree({**CLEAN_PROJECT, EXTENSION: "project/commented_c"})
+        write_tree({**CLEAN_PROJECT, EXTENSION: "project/commented_c.c"})
         assert EXTENSION in run_cli_subprocess(FULL_RUN)[1]
 
     def test_reads_a_cpp_file(
         self, write_tree: WriteTree, run_cli_subprocess: RunCli
     ) -> None:
-        write_tree({**CLEAN_PROJECT, NATIVE: "project/commented_cpp"})
+        write_tree({**CLEAN_PROJECT, NATIVE: "project/commented_cpp.cpp"})
         assert NATIVE in run_cli_subprocess(FULL_RUN)[1]
 
     def test_spares_the_namespace_end_clang_format_writes(
         self, write_tree: WriteTree, run_cli_subprocess: RunCli
     ) -> None:
-        write_tree({**CLEAN_PROJECT, NATIVE: "project/clean_cpp"})
+        write_tree({**CLEAN_PROJECT, NATIVE: "project/clean_cpp.cpp"})
         assert run_cli_subprocess(FULL_RUN)[0] == 0
 
     def test_reports_a_shell_comment_and_not_the_shebang(
         self, write_tree: WriteTree, run_cli_subprocess: RunCli
     ) -> None:
-        write_tree({**CLEAN_PROJECT, SCRIPT: "project/commented_shell"})
+        write_tree({**CLEAN_PROJECT, SCRIPT: "project/commented_shell.sh"})
         assert run_cli_subprocess([*FULL_RUN, "--count"])[1] == "1\n"
 
     def test_reads_a_systemverilog_file(
         self, write_tree: WriteTree, run_cli_subprocess: RunCli
     ) -> None:
-        write_tree({**CLEAN_PROJECT, DESIGN: "project/commented_systemverilog"})
+        write_tree({**CLEAN_PROJECT, DESIGN: "project/commented_systemverilog.sv"})
         assert DESIGN in run_cli_subprocess(FULL_RUN)[1]
 
     def test_reports_a_comment_in_a_workflow_run_script(
         self, write_tree: WriteTree, run_cli_subprocess: RunCli
     ) -> None:
-        write_tree({**CLEAN_PROJECT, WORKFLOW: "project/commented_run_script"})
+        write_tree({**CLEAN_PROJECT, WORKFLOW: "project/commented_run_script.yml"})
         assert run_cli_subprocess([*FULL_RUN, "--count"])[1] == "1\n"
 
     def test_counts_a_comment_in_a_quoted_run_value(
         self, write_tree: WriteTree, run_cli_subprocess: RunCli
     ) -> None:
-        write_tree({**CLEAN_PROJECT, WORKFLOW: "project/commented_quoted_run"})
+        write_tree({**CLEAN_PROJECT, WORKFLOW: "project/commented_quoted_run.yml"})
         assert run_cli_subprocess([*FULL_RUN, "--count"])[1] == "1\n"
 
     def test_counts_an_html_like_comment_in_a_javascript_file(
         self, write_tree: WriteTree, run_cli_subprocess: RunCli
     ) -> None:
-        write_tree({**CLEAN_PROJECT, PAGE_SCRIPT: "project/html_commented_javascript"})
+        write_tree({**CLEAN_PROJECT, PAGE_SCRIPT: "project/html_commented_javascript.js"})
         assert run_cli_subprocess([*FULL_RUN, "--count"])[1] == "1\n"

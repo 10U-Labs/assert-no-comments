@@ -77,96 +77,96 @@ def _settings(**overrides: bool) -> argparse.Namespace:
 
 class TestPythonFilesOnDisk:
     def test_reports_a_comment(self, tmp_path: Path) -> None:
-        assert _lines(tmp_path, "a.py", sample("python/reports_comment")) == [1]
+        assert _lines(tmp_path, "a.py", sample("python/reports_comment.py")) == [1]
 
     def test_reports_a_trailing_comment(self, tmp_path: Path) -> None:
-        assert _lines(tmp_path, "a.py", sample("project/commented_python")) == [2]
+        assert _lines(tmp_path, "a.py", sample("project/commented_python.py")) == [2]
 
     def test_reports_a_docstring(self, tmp_path: Path) -> None:
-        assert _lines(tmp_path, "a.py", sample("python/reports_docstring")) == [2]
+        assert _lines(tmp_path, "a.py", sample("python/reports_docstring.py")) == [2]
 
     def test_reports_a_module_docstring(self, tmp_path: Path) -> None:
-        assert _lines(tmp_path, "a.py", sample("python/reports_module_docstring")) == [1]
+        assert _lines(tmp_path, "a.py", sample("python/reports_module_docstring.py")) == [1]
 
     def test_reports_a_class_docstring(self, tmp_path: Path) -> None:
-        assert _lines(tmp_path, "a.py", sample("python/reports_class_docstring")) == [2]
+        assert _lines(tmp_path, "a.py", sample("python/reports_class_docstring.py")) == [2]
 
     def test_reports_an_async_function_docstring(self, tmp_path: Path) -> None:
-        assert _lines(tmp_path, "a.py", sample("python/reports_async_function_docstring")) == [2]
+        assert _lines(tmp_path, "a.py", sample("python/reports_async_function_docstring.py")) == [2]
 
     def test_leaves_a_hash_in_a_string_alone(self, tmp_path: Path) -> None:
-        assert _lines(tmp_path, "a.py", sample("python/leaves_hash_in_string")) == []
+        assert _lines(tmp_path, "a.py", sample("python/leaves_hash_in_string.py")) == []
 
     def test_reports_the_comment_and_not_the_shebang(self, tmp_path: Path) -> None:
-        assert _lines(tmp_path, "a.py", sample("python/reports_comment_not_shebang")) == [3]
+        assert _lines(tmp_path, "a.py", sample("python/reports_comment_not_shebang.py")) == [3]
 
     def test_leaves_a_bare_number_alone(self, tmp_path: Path) -> None:
-        assert _lines(tmp_path, "a.py", sample("python/leaves_bare_number")) == []
+        assert _lines(tmp_path, "a.py", sample("python/leaves_bare_number.py")) == []
 
     def test_leaves_an_assignment_alone(self, tmp_path: Path) -> None:
-        assert _lines(tmp_path, "a.py", sample("python/leaves_assignment")) == []
+        assert _lines(tmp_path, "a.py", sample("python/leaves_assignment.py")) == []
 
     def test_leaves_an_empty_file_alone(self, tmp_path: Path) -> None:
         assert _lines(tmp_path, "a.py", "") == []
 
     def test_a_file_that_will_not_parse_is_unreadable(self, tmp_path: Path) -> None:
         with pytest.raises(Unreadable):
-            _lines(tmp_path, "a.py", sample("project/broken_python"))
+            _lines(tmp_path, "a.py", sample("project/broken_python.py"))
 
 
 class TestYamlFilesOnDisk:
     def test_reports_a_comment(self, tmp_path: Path) -> None:
-        assert _lines(tmp_path, "a.yml", sample("project/commented_workflow")) == [3]
+        assert _lines(tmp_path, "a.yml", sample("project/commented_workflow.yml")) == [3]
 
     def test_reads_the_yaml_suffix_too(self, tmp_path: Path) -> None:
-        assert _lines(tmp_path, "a.yaml", sample("project/commented_workflow")) == [3]
+        assert _lines(tmp_path, "a.yaml", sample("project/commented_workflow.yml")) == [3]
 
     def test_leaves_a_hash_in_a_block_scalar_alone(self, tmp_path: Path) -> None:
-        assert _lines(tmp_path, "a.yml", sample("yaml/leaves_hash_in_block_scalar")) == []
+        assert _lines(tmp_path, "a.yml", sample("yaml/leaves_hash_in_block_scalar.yml")) == []
 
     def test_leaves_a_hash_in_a_quoted_scalar_alone(self, tmp_path: Path) -> None:
-        assert _lines(tmp_path, "a.yml", sample("yaml/leaves_hash_in_quoted_scalar")) == []
+        assert _lines(tmp_path, "a.yml", sample("yaml/leaves_hash_in_quoted_scalar.yml")) == []
 
     def test_a_file_that_will_not_parse_is_unreadable(self, tmp_path: Path) -> None:
         with pytest.raises(Unreadable):
-            _lines(tmp_path, "a.yml", sample("yaml/file_will_parse_unreadable"))
+            _lines(tmp_path, "a.yml", sample("yaml/file_will_parse_unreadable.yml"))
 
 
 class TestOpenTofuFilesOnDisk:
     def test_reports_a_hash_comment(self, tmp_path: Path) -> None:
-        assert _lines(tmp_path, "a.tf", sample("opentofu/reports_hash_comment")) == [1]
+        assert _lines(tmp_path, "a.tf", sample("opentofu/reports_hash_comment.tf")) == [1]
 
     def test_reports_a_double_slash_comment(self, tmp_path: Path) -> None:
-        assert _lines(tmp_path, "a.tf", sample("opentofu/reports_double_slash_comment")) == [2]
+        assert _lines(tmp_path, "a.tf", sample("opentofu/reports_double_slash_comment.tf")) == [2]
 
     def test_reports_a_block_comment(self, tmp_path: Path) -> None:
-        assert _lines(tmp_path, "a.tf", sample("opentofu/reports_block_comment")) == [2]
+        assert _lines(tmp_path, "a.tf", sample("opentofu/reports_block_comment.tf")) == [2]
 
     def test_reads_the_tfvars_suffix_too(self, tmp_path: Path) -> None:
-        assert _lines(tmp_path, "a.tfvars", sample("opentofu/reads_tfvars_suffix")) == [1]
+        assert _lines(tmp_path, "a.tfvars", sample("opentofu/reads_tfvars_suffix.tf")) == [1]
 
     def test_reads_the_hcl_suffix_too(self, tmp_path: Path) -> None:
-        assert _lines(tmp_path, "a.hcl", sample("opentofu/reads_hcl_suffix")) == [1]
+        assert _lines(tmp_path, "a.hcl", sample("opentofu/reads_hcl_suffix.tf")) == [1]
 
     def test_leaves_a_hash_in_a_string_alone(self, tmp_path: Path) -> None:
-        assert _lines(tmp_path, "a.tf", sample("opentofu/leaves_hash_in_string")) == []
+        assert _lines(tmp_path, "a.tf", sample("opentofu/leaves_hash_in_string.tf")) == []
 
     def test_leaves_a_hash_in_a_heredoc_alone(self, tmp_path: Path) -> None:
-        assert _lines(tmp_path, "a.tf", sample("opentofu/leaves_hash_in_heredoc")) == []
+        assert _lines(tmp_path, "a.tf", sample("opentofu/leaves_hash_in_heredoc.tf")) == []
 
     def test_a_file_that_will_not_parse_still_reports_what_it_can(self, tmp_path: Path) -> None:
-        assert _lines(tmp_path, "a.tf", sample("opentofu/file_will_parse_reports")) == [1]
+        assert _lines(tmp_path, "a.tf", sample("opentofu/file_will_parse_reports.tf")) == [1]
 
 
 class TestJavascriptFilesOnDisk:
     def test_reports_a_comment(self, tmp_path: Path) -> None:
-        assert _lines(tmp_path, "a.js", sample("javascript/reports_comment")) == [2]
+        assert _lines(tmp_path, "a.js", sample("javascript/reports_comment.js")) == [2]
 
     def test_reports_a_block_comment(self, tmp_path: Path) -> None:
-        assert _lines(tmp_path, "a.js", sample("javascript/reports_block_comment")) == [2]
+        assert _lines(tmp_path, "a.js", sample("javascript/reports_block_comment.js")) == [2]
 
     def test_reports_an_html_like_comment(self, tmp_path: Path) -> None:
-        assert _lines(tmp_path, "a.js", sample("javascript/reports_html_comment")) == [2]
+        assert _lines(tmp_path, "a.js", sample("javascript/reports_html_comment.js")) == [2]
 
     def test_reads_the_mjs_suffix_too(self, tmp_path: Path) -> None:
         assert _lines(tmp_path, "a.mjs", "// why") == [1]
@@ -178,45 +178,52 @@ class TestJavascriptFilesOnDisk:
         assert _lines(tmp_path, "a.jsx", "// why") == [1]
 
     def test_leaves_a_url_in_a_string_alone(self, tmp_path: Path) -> None:
-        assert _lines(tmp_path, "a.js", sample("javascript/leaves_url_in_string")) == []
+        assert _lines(tmp_path, "a.js", sample("javascript/leaves_url_in_string.js")) == []
 
     def test_leaves_a_url_in_a_template_literal_alone(self, tmp_path: Path) -> None:
-        assert _lines(tmp_path, "a.js", sample("javascript/leaves_url_in_template_literal")) == []
+        text = sample("javascript/leaves_url_in_template_literal.js")
+        assert _lines(tmp_path, "a.js", text) == []
 
     def test_leaves_a_double_slash_in_a_pattern_alone(self, tmp_path: Path) -> None:
-        assert _lines(tmp_path, "a.js", sample("javascript/leaves_double_slash_in_pattern")) == []
+        text = sample("javascript/leaves_double_slash_in_pattern.js")
+        assert _lines(tmp_path, "a.js", text) == []
 
     def test_a_slash_in_a_character_class_does_not_end_a_pattern(self, tmp_path: Path) -> None:
-        assert _lines(tmp_path, "a.js", sample("javascript/slash_in_character_class_end")) == []
+        assert _lines(tmp_path, "a.js", sample("javascript/slash_in_character_class_end.js")) == []
 
     def test_reports_a_comment_after_a_pattern(self, tmp_path: Path) -> None:
-        assert _lines(tmp_path, "a.js", sample("javascript/reports_comment_after_pattern")) == [1]
+        text = sample("javascript/reports_comment_after_pattern.js")
+        assert _lines(tmp_path, "a.js", text) == [1]
 
     def test_reports_a_comment_after_a_division(self, tmp_path: Path) -> None:
-        assert _lines(tmp_path, "a.js", sample("javascript/reports_comment_after_division")) == [1]
+        text = sample("javascript/reports_comment_after_division.js")
+        assert _lines(tmp_path, "a.js", text) == [1]
 
     def test_reports_a_comment_after_a_closing_element(self, tmp_path: Path) -> None:
-        assert _lines(tmp_path, "a.jsx", sample("javascript/reports_comment_after_closing")) == [2]
+        text = sample("javascript/reports_comment_after_closing.js")
+        assert _lines(tmp_path, "a.jsx", text) == [2]
 
     def test_reports_a_comment_after_a_self_closing_element(self, tmp_path: Path) -> None:
-        assert _lines(tmp_path, "a.jsx", sample("javascript/reports_comment_after_self")) == [1]
+        assert _lines(tmp_path, "a.jsx", sample("javascript/reports_comment_after_self.js")) == [1]
 
     def test_reports_a_comment_braced_inside_an_element(self, tmp_path: Path) -> None:
-        assert _lines(tmp_path, "a.jsx", sample("javascript/reports_comment_braced_inside")) == [2]
+        text = sample("javascript/reports_comment_braced_inside.js")
+        assert _lines(tmp_path, "a.jsx", text) == [2]
 
     def test_leaves_markers_in_the_text_of_an_element_alone(self, tmp_path: Path) -> None:
-        assert _lines(tmp_path, "a.jsx", sample("javascript/leaves_markers_in_text_element")) == []
+        text = sample("javascript/leaves_markers_in_text_element.js")
+        assert _lines(tmp_path, "a.jsx", text) == []
 
 
 class TestTypescriptFilesOnDisk:
     def test_reports_a_comment(self, tmp_path: Path) -> None:
-        assert _lines(tmp_path, "a.ts", sample("typescript/reports_comment")) == [1]
+        assert _lines(tmp_path, "a.ts", sample("typescript/reports_comment.ts")) == [1]
 
     def test_reports_a_documentation_block(self, tmp_path: Path) -> None:
-        assert _lines(tmp_path, "a.ts", sample("typescript/reports_documentation_block")) == [2]
+        assert _lines(tmp_path, "a.ts", sample("typescript/reports_documentation_block.ts")) == [2]
 
     def test_reads_a_declaration_file(self, tmp_path: Path) -> None:
-        assert _lines(tmp_path, "a.d.ts", sample("typescript/reads_declaration_file")) == [1]
+        assert _lines(tmp_path, "a.d.ts", sample("typescript/reads_declaration_file.ts")) == [1]
 
     def test_reads_the_mts_suffix_too(self, tmp_path: Path) -> None:
         assert _lines(tmp_path, "a.mts", "// why") == [1]
@@ -225,26 +232,28 @@ class TestTypescriptFilesOnDisk:
         assert _lines(tmp_path, "a.cts", "// why") == [1]
 
     def test_a_type_assertion_does_not_hide_the_comment_after_it(self, tmp_path: Path) -> None:
-        assert _lines(tmp_path, "a.ts", sample("typescript/type_assertion_hide_comment")) == [2]
+        assert _lines(tmp_path, "a.ts", sample("typescript/type_assertion_hide_comment.ts")) == [2]
 
 
 class TestTsxFilesOnDisk:
     def test_reports_every_form_a_comment_takes(self, tmp_path: Path) -> None:
-        assert _lines(tmp_path, "App.tsx", sample("project/commented_tsx")) == [3, 5, 8]
+        assert _lines(tmp_path, "App.tsx", sample("project/commented_tsx.tsx")) == [3, 5, 8]
 
     def test_a_file_with_no_comment_in_it_reports_nothing(self, tmp_path: Path) -> None:
-        assert _lines(tmp_path, "App.tsx", sample("tsx/file_no_comment_reports_nothing")) == []
+        assert _lines(tmp_path, "App.tsx", sample("tsx/file_no_comment_reports_nothing.tsx")) == []
 
     def test_an_element_does_not_hide_the_comment_after_it(self, tmp_path: Path) -> None:
-        assert _lines(tmp_path, "App.tsx", sample("tsx/element_hide_comment_after")) == [2]
+        assert _lines(tmp_path, "App.tsx", sample("tsx/element_hide_comment_after.tsx")) == [2]
 
 
 class TestFilesNoReaderSpeaks:
     def test_a_markdown_file_reports_nothing(self, tmp_path: Path) -> None:
-        assert _lines(tmp_path, "notes.md", sample("no_reader/markdown_file_reports_nothing")) == []
+        text = sample("no_reader/markdown_file_reports_nothing.md")
+        assert _lines(tmp_path, "notes.md", text) == []
 
     def test_a_lock_file_reports_nothing(self, tmp_path: Path) -> None:
-        assert _lines(tmp_path, ".terraform.lock.hcl", sample("no_reader/lock_file_reports")) == []
+        text = sample("no_reader/lock_file_reports.hcl")
+        assert _lines(tmp_path, ".terraform.lock.hcl", text) == []
 
     def test_a_file_with_no_suffix_reports_nothing(self, tmp_path: Path) -> None:
         assert _lines(tmp_path, "Makefile", sample("no_reader/file_with_no_suffix_reports")) == []
@@ -252,12 +261,12 @@ class TestFilesNoReaderSpeaks:
 
 class TestParsedComments:
     def test_reads_a_grammar_named_directly(self, tmp_path: Path) -> None:
-        (tmp_path / "a.tf").write_text(sample("parsed/reads_grammar_named"), encoding="utf-8")
+        (tmp_path / "a.tf").write_text(sample("parsed/reads_grammar_named.tf"), encoding="utf-8")
         content = (tmp_path / "a.tf").read_text(encoding="utf-8")
         assert parsed_comments(content, HCL) == [1]
 
     def test_reports_one_line_once(self, tmp_path: Path) -> None:
-        assert _lines(tmp_path, "b.js", sample("parsed/reports_one_line_once")) == [1]
+        assert _lines(tmp_path, "b.js", sample("parsed/reports_one_line_once.js")) == [1]
 
 
 class TestCollectingFiles:
@@ -306,7 +315,7 @@ class TestCollectingFiles:
         root = write_tree(CLEAN_PROJECT)
         (root / "src" / "__pycache__").mkdir()
         cached = root / "src" / "__pycache__" / "cached.py"
-        cached.write_text(sample("collecting/cache_directory"), encoding="utf-8")
+        cached.write_text(sample("collecting/cache_directory.py"), encoding="utf-8")
         assert "cached.py" not in str(_walk_source_files("src"))
 
     def test_a_glob_is_told_from_a_path(self) -> None:
@@ -341,7 +350,7 @@ class TestCollectingFiles:
 class TestReadingFiles:
     def test_reads_the_content(self, write_tree: WriteTree) -> None:
         write_tree(PROJECT)
-        assert _read(SOURCE, ScanResult()) == sample("project/commented_python")
+        assert _read(SOURCE, ScanResult()) == sample("project/commented_python.py")
 
     def test_a_missing_file_reads_as_nothing(self, write_tree: WriteTree) -> None:
         write_tree(PROJECT)
@@ -377,13 +386,13 @@ class TestReadingFiles:
         assert result.files_scanned == 0
 
     def test_a_file_that_will_not_parse_records_an_error(self, write_tree: WriteTree) -> None:
-        write_tree({**PROJECT, "src/broken.py": "project/broken_python"})
+        write_tree({**PROJECT, "src/broken.py": "project/broken_python.py"})
         result = ScanResult()
         read_comments(["src/broken.py"], result)
         assert result.had_error
 
     def test_a_file_that_will_not_parse_is_not_counted(self, write_tree: WriteTree) -> None:
-        write_tree({**PROJECT, "src/broken.py": "project/broken_python"})
+        write_tree({**PROJECT, "src/broken.py": "project/broken_python.py"})
         result = ScanResult()
         read_comments(["src/broken.py"], result)
         assert result.files_scanned == 0
@@ -452,17 +461,17 @@ class TestTheCommandOverATree:
         assert SOURCE in run_cli(FULL_RUN)[1]
 
     def test_reads_a_workflow_file(self, write_tree: WriteTree, run_cli: RunCli) -> None:
-        write_tree({**CLEAN_PROJECT, WORKFLOW: "project/commented_workflow"})
+        write_tree({**CLEAN_PROJECT, WORKFLOW: "project/commented_workflow.yml"})
         assert WORKFLOW in run_cli(FULL_RUN)[1]
 
     def test_reads_a_typescript_component(self, write_tree: WriteTree, run_cli: RunCli) -> None:
-        write_tree({**CLEAN_PROJECT, COMPONENT: "project/commented_tsx"})
+        write_tree({**CLEAN_PROJECT, COMPONENT: "project/commented_tsx.tsx"})
         assert COMPONENT in run_cli(FULL_RUN)[1]
 
     def test_counts_every_comment_a_component_carries(
         self, write_tree: WriteTree, run_cli: RunCli
     ) -> None:
-        write_tree({**CLEAN_PROJECT, COMPONENT: "project/commented_tsx"})
+        write_tree({**CLEAN_PROJECT, COMPONENT: "project/commented_tsx.tsx"})
         assert run_cli([*FULL_RUN, "--count"])[1] == "3\n"
 
     def test_leaves_the_vendored_javascript_alone(
@@ -484,7 +493,7 @@ class TestTheCommandOverATree:
     def test_fail_fast_stops_at_the_first_finding(
         self, write_tree: WriteTree, run_cli: RunCli
     ) -> None:
-        write_tree({**PROJECT, WORKFLOW: "project/commented_workflow"})
+        write_tree({**PROJECT, WORKFLOW: "project/commented_workflow.yml"})
         assert len(run_cli([*FULL_RUN, "--fail-fast"])[1].splitlines()) == 1
 
     def test_warn_only_succeeds_with_findings(
@@ -532,8 +541,8 @@ class TestTheCommandOverEachLanguage:
     ) -> None:
         write_tree(
             {
-                NATIVE: "cpp/reports_every_comment_source",
-                HEADER: "cpp/reports_every_comment_header",
+                NATIVE: "cpp/reports_every_comment_source.cpp",
+                HEADER: "cpp/reports_every_comment_header.cpp",
             }
         )
         found = [Finding(NATIVE, 1), Finding(NATIVE, 3), Finding(NATIVE, 6), Finding(HEADER, 1)]
@@ -542,13 +551,13 @@ class TestTheCommandOverEachLanguage:
     def test_reports_both_comments_a_c_file_carries(
         self, write_tree: WriteTree, run_cli: RunCli
     ) -> None:
-        write_tree({EXTENSION: "c/reports_both_comments"})
+        write_tree({EXTENSION: "c/reports_both_comments.c"})
         assert run_cli(["src"])[1] == _printed([Finding(EXTENSION, 1), Finding(EXTENSION, 2)])
 
     def test_reports_the_comment_in_a_shell_script_and_not_its_shebang(
         self, write_tree: WriteTree, run_cli: RunCli
     ) -> None:
-        write_tree({SCRIPT: "shell/reports_the_comment_not_the_shebang"})
+        write_tree({SCRIPT: "shell/reports_the_comment_not_the_shebang.sh"})
         assert run_cli(["src"])[1] == _printed([Finding(SCRIPT, 3)])
 
     def test_reports_every_comment_in_systemverilog_and_verilog(
@@ -556,8 +565,8 @@ class TestTheCommandOverEachLanguage:
     ) -> None:
         write_tree(
             {
-                DESIGN: "systemverilog/reports_comments_design",
-                LEGACY: "systemverilog/reports_comments_legacy",
+                DESIGN: "systemverilog/reports_comments_design.sv",
+                LEGACY: "systemverilog/reports_comments_legacy.sv",
             }
         )
         found = [Finding(DESIGN, 2), Finding(DESIGN, 3), Finding(LEGACY, 1)]
@@ -568,8 +577,8 @@ class TestTheCommandOverEachLanguage:
     ) -> None:
         write_tree(
             {
-                WORKFLOW: "workflow/run_script_comment",
-                CONFIG: "workflow/run_script_comment",
+                WORKFLOW: "workflow/run_script_comment.yml",
+                CONFIG: "workflow/run_script_comment.yml",
             }
         )
         assert run_cli([".github", "etc"])[1] == _printed([Finding(WORKFLOW, 8)])
@@ -577,7 +586,7 @@ class TestTheCommandOverEachLanguage:
     def test_reports_a_comment_in_a_quoted_run_value(
         self, write_tree: WriteTree, run_cli: RunCli
     ) -> None:
-        write_tree({WORKFLOW: "workflow/quoted_run_comment"})
+        write_tree({WORKFLOW: "workflow/quoted_run_comment.yml"})
         assert run_cli([".github"])[1] == _printed([Finding(WORKFLOW, 8)])
 
 
@@ -605,7 +614,7 @@ class TestTheCommandWhenATreeWillNotRead:
     def test_a_broken_file_in_the_tree_is_an_error(
         self, write_tree: WriteTree, run_cli: RunCli
     ) -> None:
-        write_tree({**CLEAN_PROJECT, "src/broken.py": "project/broken_python"})
+        write_tree({**CLEAN_PROJECT, "src/broken.py": "project/broken_python.py"})
         assert run_cli(FULL_RUN)[0] == EXIT_ERROR
 
     def test_the_output_modes_are_mutually_exclusive(
