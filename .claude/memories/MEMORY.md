@@ -25,7 +25,7 @@
 - [A wait runs in the background](a-wait-runs-in-the-background.md) — a CI wait is run_in_background or Monitor, never a foreground sleep or gh run watch, so reminders fire; a watch polls at --interval 60.
 - [Only wait while a run is in progress](only-wait-while-a-run-is-in-progress.md) — no diagnosis, edits or commits until it lands, autopilot or not.
 - [One indivisible problem per issue](one-indivisible-problem-per-issue.md) — one fault with every case of it listed, or one defect with one fix; two problems are split, cases of one fault merged.
-- [An issue states one solution](an-issue-states-one-solution.md) — an issue names one change, never a menu or a question.
+- [An issue states one solution](an-issue-states-one-solution.md) — an issue names one change and its reason, never a menu, a question or the options that lost.
 - [Issues have no fixed form](issues-have-no-fixed-form.md) — no house layout; write each so a fresh session can act on it alone.
 - [Issue sections take headings](issue-sections-take-headings.md) — a `##` heading opens each section, never a bolded lead sentence.
 - [Issues define their terms](issues-define-their-terms.md) — say what each file, term and cited source is and why it is there; never a name the reader must already know.
