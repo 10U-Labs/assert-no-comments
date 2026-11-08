@@ -15,4 +15,5 @@ closes #1 and leaves #2 open. There is no pull request to close it instead, per
 [[commits-go-straight-to-main]].
 
 **How to apply:** give each issue its own `Closes #N` line in the message, ahead
-of the attribution lines.
+of the attribution lines, and only in the commit that finishes it, per
+[[issue-closing-keywords-fire-on-push]].

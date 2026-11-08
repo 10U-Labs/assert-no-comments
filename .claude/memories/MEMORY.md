@@ -5,6 +5,7 @@
 - [Commits go straight to main](commits-go-straight-to-main.md) — no branch, no pull request; CI is the only review.
 - [Issues that share code are one piece of work](issues-that-share-code-are-one-piece-of-work.md) — group the issues whose fixes go through the same code, take the first group whole, push each part once it stands alone.
 - [An issue is closed by its commit](an-issue-is-closed-by-its-commit.md) — one `Closes #N` line per issue; `Closes #1 and #2` leaves #2 open.
+- [Issue-closing keywords fire on push](issue-closing-keywords-fire-on-push.md) — nine keywords close from anywhere in a pushed message, brackets included; keep them for the finishing commit.
 - [Push once and let the run finish](push-once-and-let-the-run-finish.md) — a second push cancels the first run and costs that commit its release.
 - [A rejected push is fixed forward](a-rejected-push-is-fixed-forward.md) — one follow-up commit answering every failed check, never an amend and force-push.
 - [CI is the source of truth](ci-is-the-source-of-truth.md) — never run tests, linters or builds locally; a green release run publishes.
