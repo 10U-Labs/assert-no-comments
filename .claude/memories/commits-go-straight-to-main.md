@@ -14,6 +14,6 @@ do not open a pull request, and do not structure advice around a review cycle.
 and on nothing else, so a branch would get no run at all, and the tests land in
 the same commit as the code they cover.
 
-**How to apply:** commit on `main` and push, one issue to a commit per
-[[one-issue-one-commit]], and close the issue from the message per
-[[an-issue-is-closed-by-its-commit]].
+**How to apply:** commit on `main` and push, a piece of work at a time per
+[[issues-that-share-code-are-one-piece-of-work]], and close each issue from the
+message per [[an-issue-is-closed-by-its-commit]].

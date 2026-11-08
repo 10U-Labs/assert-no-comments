@@ -3,7 +3,7 @@
 - [Memories live in .claude/memories](memories-live-in-dot-claude-memories.md) — autoMemoryDirectory in the untracked settings.local.json points here; there is no CLAUDE.md.
 - [A memory holds only what the tree cannot say](a-memory-holds-only-what-the-tree-cannot-say.md) — the reason, never the history; nothing release.yml, README.md, the code or git log answers; this index is the one exception.
 - [Commits go straight to main](commits-go-straight-to-main.md) — no branch, no pull request; CI is the only review.
-- [One issue, one commit](one-issue-one-commit.md) — one commit and one push per issue, never a batch, unlike the sibling repositories.
+- [Issues that share code are one piece of work](issues-that-share-code-are-one-piece-of-work.md) — group the issues whose fixes go through the same code, take the first group whole, push each part once it stands alone.
 - [An issue is closed by its commit](an-issue-is-closed-by-its-commit.md) — one `Closes #N` line per issue; `Closes #1 and #2` leaves #2 open.
 - [Push once and let the run finish](push-once-and-let-the-run-finish.md) — a second push cancels the first run and costs that commit its release.
 - [A rejected push is fixed forward](a-rejected-push-is-fixed-forward.md) — one follow-up commit answering every failed check, never an amend and force-push.

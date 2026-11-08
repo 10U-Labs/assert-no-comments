@@ -13,11 +13,10 @@ fifteen-minute cycle, so they arrive one at a time. A reminder fires only while
 the session is idle, which is why every wait runs in the background, per
 `.claude/memories/a-wait-runs-in-the-background.md`.
 
-This is the autopilot of 10ulabs.com, api.10ulabs.com and wan-synthesizer with
-the batching taken out. A commit there solves every open issue of one workflow's
-stack; a commit here solves one issue, per
-`.claude/memories/one-issue-one-commit.md`, so the loop takes one issue at a
-time.
+The loop takes a group of issues at a time: it reads every issue it lists, sorts
+them into groups whose fixes go through the same code, and takes the group
+holding the lowest-numbered issue whole, per
+`.claude/memories/issues-that-share-code-are-one-piece-of-work.md`.
 
 ## Standing reminders
 
@@ -26,7 +25,7 @@ Every form.
 | Cron | Prompt |
 | --- | --- |
 | `2,17,32,47 * * * *` | `REMINDER: Code is changed, committed and pushed only in the repository this session runs in. A problem whose code another repository owns, such as one of the assert tools a gate installs, is filed as an issue there, or an issue here is transferred there, and the session goes no further with it: that repository is not edited, its workflows and runs are not read, and nothing is waited for there.` |
-| `3,18,33,48 * * * *` | `REMINDER: Let every push carry exactly one commit, and let that commit solve exactly one issue, its tests written first and landing with it, closed by a Closes #N line of its own. Two issues share a commit only where the fix for one is contained in the fix for the other; an issue that will not fit one commit is two issues, and the second is filed rather than pushed separately.` |
+| `3,18,33,48 * * * *` | `REMINDER: Let every push carry exactly one commit, its tests written first and landing with it, and give each issue that commit solves a Closes #N line of its own. Issues whose fixes go through the same code are one piece of work, designed and tested together; commit and push each part once it stands on its own.` |
 | `5,20,35,50 * * * *` | `REMINDER: Before working on an issue, ensure the issue is up to date. If it is outdated, rewrite its title and body as necessary and ensure its labels are correct. Ensure too that it documents a single indivisible problem and names one change that solves it; if it documents more than one problem, split it into one issue per problem, reusing the issue itself as one of those splits.` |
 | `7,22,37,52 * * * *` | `REMINDER: While any CI run for a commit pushed to this repository is in progress, only wait, in the background: no diagnosis, edits or commits.` |
 | `8,23,38,53 * * * *` | `REMINDER: File what you find as issues, each documenting one indivisible problem. Solve one now only if the work in hand cannot move forward without it; otherwise move on.` |
@@ -39,13 +38,13 @@ Every form but `reminders-only`.
 On `1,16,31,46 * * * *`, for `start`:
 
 ```text
-REMINDER: Run gh issue list --state open --search '-label:"needs decision"' --limit 1000 --json number,title,labels --jq 'sort_by(.number) | map({number, title, labels: [.labels[].name]})' for the open issues no decision holds back, lowest number first; take the first that no open issue blocks, in this repository or another, solve it alone in one commit and one push, and run the same command again when it closes. An issue labelled 'needs decision' is left to a person.
+REMINDER: Run gh issue list --state open --search '-label:"needs decision"' --limit 1000 --json number,title,labels --jq 'sort_by(.number) | map({number, title, labels: [.labels[].name]})' for the open issues no decision holds back, lowest number first; before solving anything, read every issue it lists that no open issue blocks, in this repository or another, sort them into groups of issues whose fixes go through the same code, and take the group holding the lowest-numbered of them whole as one piece of work, test first, committing and pushing each part once it stands on its own; run the same command again when they close. An issue labelled 'needs decision' is left to a person.
 ```
 
 For `start bylabel <label>`:
 
 ```text
-REMINDER: Run gh issue list --state open --label '{L}' --search '-label:"needs decision"' --limit 1000 --json number,title,labels --jq 'sort_by(.number) | map({number, title, labels: [.labels[].name]})' for the open issues labelled '{L}', lowest number first; take the first that no open issue blocks, in this repository or another, solve it alone in one commit and one push, and run the same command again when it closes. The open issues without the label '{L}' are not this loop's work, and an issue labelled 'needs decision' is left to a person.
+REMINDER: Run gh issue list --state open --label '{L}' --search '-label:"needs decision"' --limit 1000 --json number,title,labels --jq 'sort_by(.number) | map({number, title, labels: [.labels[].name]})' for the open issues labelled '{L}', lowest number first; before solving anything, read every issue it lists that no open issue blocks, in this repository or another, sort them into groups of issues whose fixes go through the same code, and take the group holding the lowest-numbered of them whole as one piece of work, test first, committing and pushing each part once it stands on its own; run the same command again when they close. The open issues without the label '{L}' are not this loop's work, and an issue labelled 'needs decision' is left to a person.
 ```
 
 | Cron | Prompt |
@@ -78,8 +77,10 @@ worked: the issue here waits for it.
 5. Tell the user how many reminders are running, and the two limits that come
    with them: the jobs live in this session only and are gone when it ends, and
    recurring jobs auto-expire after seven days.
-6. Unless `reminders-only`, solve the first issue the command names that no open
-   issue blocks, alone, per `.claude/memories/one-issue-one-commit.md`. When no
+6. Unless `reminders-only`, read every issue the command names that no open
+   issue blocks, sort them into groups whose fixes go through the same code, and
+   solve the group holding the lowest-numbered of them, per
+   `.claude/memories/issues-that-share-code-are-one-piece-of-work.md`. When no
    issue can be taken, say which label or blocking issue holds back each open
    issue and stop.
 

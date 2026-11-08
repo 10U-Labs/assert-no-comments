@@ -7,7 +7,7 @@ metadata:
 
 # Push once and let the run finish
 
-Push once per issue and read that run before pushing again.
+Push one commit at a time, and read its runs before pushing the next.
 
 **Why:** both workflows cancel the run in progress when a second push lands on
 the same ref. The tree is still verified, by the later run, but the cancelled
