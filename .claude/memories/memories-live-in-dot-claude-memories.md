@@ -17,10 +17,10 @@ session writes lands in the tree.
 **Why:** the default store under `~/.claude/projects/` belongs to one machine,
 is unversioned, and is invisible to everyone else working here.
 `autoMemoryDirectory` takes only an absolute or `~/`-prefixed path; a relative
-one is rejected without a warning and the default is used instead, which is how
-10ulabs.com split its memories across two directories. An absolute path is a
-fact about one machine, so it lives in the untracked file. 10ulabs.com,
-api.10ulabs.com and wan-synthesizer are laid out the same way.
+one is ignored without a warning and the default is used instead, so what a
+session writes lands outside the tree and what the tree holds goes unread. An
+absolute path is a fact about one machine, so it lives in the untracked file.
+10ulabs.com, api.10ulabs.com and wan-synthesizer are laid out the same way.
 
 **How to apply:** a new clone writes its own `.claude/settings.local.json`. The
 path is resolved once, when `claude` starts, so a change to it takes effect only

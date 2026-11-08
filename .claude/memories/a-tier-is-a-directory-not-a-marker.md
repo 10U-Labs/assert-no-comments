@@ -10,13 +10,12 @@ metadata:
 A test belongs to the tier whose directory it sits in, and that is the only
 thing that says so. Do not mark it.
 
-**Why:** 49710d3 deleted the three `pytest.mark` markers and the
-`pytest_configure` that registered them, because no step in `release.yml` passes
-`-m` — each names `test/unit/`, `test/integration/` or `test/e2e/` — so the
-registration existed only to keep the decorators from failing the jobs under
-`--pythonwarnings=error`, and each of the 40 decorators restated by hand the
-directory its file was already in, which nothing checked. A marker that has to
-agree with a path is a comment that has to agree with its code.
+**Why:** no step in `release.yml` passes `-m`; each names `test/unit/`,
+`test/integration/` or `test/e2e/`. A marker would only restate by hand the
+directory its file is already in, which nothing checks, and registering it in a
+`pytest_configure` would exist only to keep the decorator from failing the jobs
+under `--pythonwarnings=error`. A marker that has to agree with a path is a
+comment that has to agree with its code.
 
 **How to apply:** select a tier by naming its directory, and add a marker only
 where the thing being selected is not a directory. `usefixtures` and the rest of
