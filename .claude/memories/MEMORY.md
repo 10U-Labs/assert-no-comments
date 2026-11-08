@@ -8,6 +8,7 @@
 - [Push once and let the run finish](push-once-and-let-the-run-finish.md) — a second push cancels the first run and costs that commit its release.
 - [A rejected push is fixed forward](a-rejected-push-is-fixed-forward.md) — one follow-up commit answering every failed check, never an amend and force-push.
 - [CI is the source of truth](ci-is-the-source-of-truth.md) — never run tests, linters or builds locally; a green release run publishes.
+- [gh search returns at most 1000 issues](gh-search-returns-at-most-1000-issues.md) — `--search` and `--label` go through search; list every open issue with `--limit 10000` and filter labels in `--jq`.
 - [Find a run by the full hash](find-a-run-by-the-full-hash.md) — `gh run list --commit` lists nothing for a short hash; pass `git rev-parse HEAD`.
 - [A wait runs in the background](a-wait-runs-in-the-background.md) — a CI wait is run_in_background or Monitor, never a foreground sleep or gh run watch, so reminders fire; a watch polls at --interval 60.
 - [Path filters are not shell globs](path-filters-are-not-shell-globs.md) — `'**.md'` reaches files at the root; `**/*.md` does not.

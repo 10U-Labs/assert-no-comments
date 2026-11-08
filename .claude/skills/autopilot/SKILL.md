@@ -38,13 +38,13 @@ Every form but `reminders-only`.
 On `1,16,31,46 * * * *`, for `start`:
 
 ```text
-REMINDER: Run gh issue list --state open --search '-label:"needs decision"' --limit 1000 --json number,title,labels --jq 'sort_by(.number) | map({number, title, labels: [.labels[].name]})' for the open issues no decision holds back, lowest number first; before solving anything, read every issue it lists that no open issue blocks, in this repository or another, sort them into groups of issues whose fixes go through the same code, and take the group holding the lowest-numbered of them whole as one piece of work, test first, committing and pushing each part once it stands on its own; run the same command again when they close. An issue labelled 'needs decision' is left to a person.
+REMINDER: Run gh issue list --state open --limit 10000 --json number,title,labels --jq 'map(select(all(.labels[]; .name != "needs decision"))) | sort_by(.number) | map({number, title, labels: [.labels[].name]})' for the open issues no decision holds back, lowest number first; before solving anything, read every issue it lists that no open issue blocks, in this repository or another, sort them into groups of issues whose fixes go through the same code, and take the group holding the lowest-numbered of them whole as one piece of work, test first, committing and pushing each part once it stands on its own; run the same command again when they close. An issue labelled 'needs decision' is left to a person.
 ```
 
 For `start bylabel <label>`:
 
 ```text
-REMINDER: Run gh issue list --state open --label '{L}' --search '-label:"needs decision"' --limit 1000 --json number,title,labels --jq 'sort_by(.number) | map({number, title, labels: [.labels[].name]})' for the open issues labelled '{L}', lowest number first; before solving anything, read every issue it lists that no open issue blocks, in this repository or another, sort them into groups of issues whose fixes go through the same code, and take the group holding the lowest-numbered of them whole as one piece of work, test first, committing and pushing each part once it stands on its own; run the same command again when they close. The open issues without the label '{L}' are not this loop's work, and an issue labelled 'needs decision' is left to a person.
+REMINDER: Run gh issue list --state open --limit 10000 --json number,title,labels --jq 'map(select(any(.labels[]; .name == "{L}"))) | map(select(all(.labels[]; .name != "needs decision"))) | sort_by(.number) | map({number, title, labels: [.labels[].name]})' for the open issues labelled '{L}', lowest number first; before solving anything, read every issue it lists that no open issue blocks, in this repository or another, sort them into groups of issues whose fixes go through the same code, and take the group holding the lowest-numbered of them whole as one piece of work, test first, committing and pushing each part once it stands on its own; run the same command again when they close. The open issues without the label '{L}' are not this loop's work, and an issue labelled 'needs decision' is left to a person.
 ```
 
 | Cron | Prompt |
@@ -54,9 +54,13 @@ REMINDER: Run gh issue list --state open --label '{L}' --search '-label:"needs d
 
 ## Start and restart
 
-Each `--skip-label <label>` adds `-label:"<label>"` to the loop command's
-`--search` and appends `An issue labelled '<label>' is left to a person,
-whatever else it carries.` to its reminder.
+Each `--skip-label <label>` puts `map(select(all(.labels[]; .name !=
+"<label>"))) |` and a space at the very start of the loop command's `--jq`
+program, and appends `An issue labelled '<label>' is left to a person, whatever
+else it carries.` to its reminder. A label is never kept or left out through
+`--label` or `--search`: either sends the listing through GitHub's search, which
+returns at most 1000 issues, per
+`.claude/memories/gh-search-returns-at-most-1000-issues.md`.
 
 An issue is blocked while `gh api
 repos/{owner}/{repo}/issues/{number}/dependencies/blocked_by` lists an open
