@@ -1,8 +1,11 @@
 ---
 name: push-once-and-let-the-run-finish
-description: Push once per issue and read that run; a second push on the same ref cancels the first run and costs that commit its release
+description: Push one commit at a time and read its runs; a second push on the same ref cancels the first run and costs that commit its release
 metadata:
+  node_type: memory
   type: feedback
+  originSessionId: 522cfb64-59f2-4927-8369-5ddee3a12124
+  modified: 2026-11-08T03:45:46.539Z
 ---
 
 # Push once and let the run finish
