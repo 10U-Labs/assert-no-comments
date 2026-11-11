@@ -72,6 +72,7 @@ assert-no-comments .github/workflows etc lib scripts src test \
 | C++ | `.cpp`, `.cc`, `.cxx`, `.c++`, `.cp`, `.C`, `.CPP`, `.tcc`, `.h`, `.hh`, `.hpp`, `.hxx`, `.h++`, `.hp`, `.H`, `.HPP` | `//`, and `/* */` |
 | Shell | `.sh`, `.bash` | `#`, except a `#!` first line |
 | SystemVerilog | `.sv`, `.svh`, `.v`, `.vh` | `//`, and `/* */` |
+| Rust | `.rs` | `//`, `/* */`, and the doc comments `///`, `//!`, `/** */` and `/*! */` |
 
 `{/* */}` is the third form because it is the only one JSX has among the
 children of an element: a bare `/* */` there is text that renders.
@@ -141,41 +142,47 @@ brace's own line is spared. Every other form is reported, `/* namespace a */`
 and `//   namespace   a` included, and so is an end comment on the line below
 the brace or one that names a different namespace.
 
-A `#!` line opening a Python, JavaScript, TypeScript or shell file is not
+A `#!` line opening a Python, JavaScript, TypeScript, shell or Rust file is not
 reported either. It names the interpreter the kernel runs the file with, so a
 wrong one fails the next run rather than going stale. The JavaScript and
-TypeScript grammars parse it as a line of its own, while `tokenize` and the
-shell grammar parse it as a comment, so the Python and shell readers spare it
-only where the kernel reads it, as the first two characters of the file.
-Anywhere else, even one space in, it is reported.
+TypeScript grammars parse it as a line of its own, and the Rust grammar parses
+it as a `shebang` node rather than as a comment, while `tokenize` and the shell
+grammar parse it as a comment, so the Python and shell readers spare it only
+where the kernel reads it, as the first two characters of the file. Anywhere
+else, even one space in, it is reported.
 
 A docstring counts as a comment. It is the same prose in the same place, and the
 fact that a language keeps it in `__doc__` does not make it any more likely to
-still be true.
+still be true. A Rust doc comment is reported for the same reason: rustdoc
+compiles the fenced code in one as a doctest, but nothing checks the prose
+around it.
 
 Every language is read by its own grammar, so nothing here decides what a
 character is by looking at the characters beside it: Python through `tokenize`
 and `ast`, YAML through the `yaml` scanner, and JavaScript, TypeScript, TSX,
-OpenTofu, C, C++, shell and SystemVerilog through their tree-sitter grammars. A
-`#` inside a Python string, a YAML quoted scalar or block scalar, an HCL
-heredoc, or a shell quoted string, word, here-document or parameter expansion is
-content. A `//` inside a JavaScript string, template literal or regular
-expression is content, a `/` after a name is division, the `/` closing a JSX tag
-is neither, and text between JSX tags renders on the page rather than commenting
-on it. A `//` inside a C, C++ or SystemVerilog string, or a C++ raw string, is
-content, and `(*` opens a SystemVerilog attribute rather than a comment. A
-comment in the body of a C or C++ `#define`, or in the text of a SystemVerilog
-`` `define ``, is still a comment: the grammar reads it as part of the body, and
-this tool finds it by parsing the body again. Each of those is a question about
-where in the file the character sits, which is what a parser knows and a marker
-table does not.
+OpenTofu, C, C++, shell, SystemVerilog and Rust through their tree-sitter
+grammars. A `#` inside a Python string, a YAML quoted scalar or block scalar, an
+HCL heredoc, or a shell quoted string, word, here-document or parameter
+expansion is content. A `//` inside a JavaScript string, template literal or
+regular expression is content, a `/` after a name is division, the `/` closing a
+JSX tag is neither, and text between JSX tags renders on the page rather than
+commenting on it. A `//` inside a C, C++, SystemVerilog or Rust string, or a C++
+or Rust raw string, is content, and `(*` opens a SystemVerilog attribute rather
+than a comment. A Rust block comment nests, so `/* a /* b */ c */` is one
+comment, reported at the line it starts on. A comment in the body of a C or C++
+`#define`, or in the text of a SystemVerilog `` `define ``, is still a comment:
+the grammar reads it as part of the body, and this tool finds it by parsing the
+body again. One in a Rust `macro_rules!` body needs no second parse, since the
+grammar reads it as a comment in the macro's tokens. Each of those is a question
+about where in the file the character sits, which is what a parser knows and a
+marker table does not.
 
 A Python or YAML file that will not parse is an error rather than a file with
 nothing in it, and so is a workflow or an action whose `python` step will not
-parse. A JavaScript, TypeScript, TSX, OpenTofu, C, C++, shell or SystemVerilog
-file that will not parse is read as far as its grammar gets: the comments it can
-still recognise are reported, so a broken file gives findings rather than an
-exit code of 2.
+parse. A JavaScript, TypeScript, TSX, OpenTofu, C, C++, shell, SystemVerilog or
+Rust file that will not parse is read as far as its grammar gets: the comments
+it can still recognise are reported, so a broken file gives findings rather than
+an exit code of 2.
 
 One limit belongs to the C and C++ grammars rather than to this tool. They end
 the body of a `#define` at the first `/*`, even one inside a string literal, so

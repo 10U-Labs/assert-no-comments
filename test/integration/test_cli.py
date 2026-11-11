@@ -13,6 +13,7 @@ from test_trees import (
     CLEAN_PROJECT,
     COMPONENT,
     CONFIG,
+    CRATE,
     DESIGN,
     EXCLUDE_VENDORED,
     EXTENSION,
@@ -570,6 +571,13 @@ class TestTheCommandOverEachLanguage:
             }
         )
         found = [Finding(DESIGN, 2), Finding(DESIGN, 3), Finding(LEGACY, 1)]
+        assert run_cli(["src"])[1] == _printed(found)
+
+    def test_reports_every_comment_in_rust_and_nothing_in_its_strings(
+        self, write_tree: WriteTree, run_cli: RunCli
+    ) -> None:
+        write_tree({CRATE: "rust/reports_every_comment.rs"})
+        found = [Finding(CRATE, line) for line in (3, 4, 5, 6, 8, 11, 12, 13)]
         assert run_cli(["src"])[1] == _printed(found)
 
     def test_reports_a_run_script_comment_in_a_workflow_and_not_in_other_yaml(

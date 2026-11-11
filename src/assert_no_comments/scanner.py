@@ -16,6 +16,7 @@ import tree_sitter_c
 import tree_sitter_cpp
 import tree_sitter_hcl
 import tree_sitter_javascript
+import tree_sitter_rust
 import tree_sitter_systemverilog
 import tree_sitter_typescript
 import yaml
@@ -28,7 +29,9 @@ if TYPE_CHECKING:
 
 DEFINITION_NODES = (ast.AsyncFunctionDef, ast.ClassDef, ast.FunctionDef, ast.Module)
 
-COMMENT_NODES = frozenset({"block_comment", "comment", "html_comment", "one_line_comment"})
+COMMENT_NODES = frozenset(
+    {"block_comment", "comment", "html_comment", "line_comment", "one_line_comment"}
+)
 
 MACRO_BODY_NODES = frozenset({"macro_text", "preproc_arg"})
 
@@ -65,6 +68,7 @@ C = Language(tree_sitter_c.language())
 CPP = Language(tree_sitter_cpp.language())
 HCL = Language(tree_sitter_hcl.language())
 JAVASCRIPT = Language(tree_sitter_javascript.language())
+RUST = Language(tree_sitter_rust.language())
 SYSTEMVERILOG = Language(tree_sitter_systemverilog.language())
 TYPESCRIPT = Language(tree_sitter_typescript.language_typescript())
 TSX = Language(tree_sitter_typescript.language_tsx())
@@ -164,6 +168,10 @@ def shell_comments(text: str) -> list[int]:
 
 def systemverilog_comments(text: str) -> list[int]:
     return parsed_comments(text, SYSTEMVERILOG)
+
+
+def rust_comments(text: str) -> list[int]:
+    return parsed_comments(text, RUST)
 
 
 def python_comments(text: str) -> list[int]:
@@ -297,6 +305,7 @@ READERS: dict[str, Callable[[str], list[int]]] = {
     ".mjs": javascript_comments,
     ".mts": typescript_comments,
     ".py": python_comments,
+    ".rs": rust_comments,
     ".sh": shell_comments,
     ".sv": systemverilog_comments,
     ".svh": systemverilog_comments,

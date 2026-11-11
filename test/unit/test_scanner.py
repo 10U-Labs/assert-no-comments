@@ -17,6 +17,7 @@ from assert_no_comments.scanner import (
     parsed_comments,
     python_comments,
     reader_for,
+    rust_comments,
     shell_comments,
     systemverilog_comments,
     tsx_comments,
@@ -48,6 +49,13 @@ CPP_SUFFIXES = (
 SHELL_SUFFIXES = (".bash", ".sh")
 
 SYSTEMVERILOG_SUFFIXES = (".sv", ".svh", ".v", ".vh")
+
+RUST_DOC_COMMENTS = (
+    "outer_line_doc_reported",
+    "inner_line_doc_reported",
+    "outer_block_doc_reported",
+    "inner_block_doc_reported",
+)
 
 WORKFLOW_PATHS = (
     ".github/workflows/build.yml",
@@ -559,6 +567,46 @@ class TestSystemverilogComments:
         assert _hdl("verilog_2005_comments") == [2, 4]
 
 
+def _rust(name: str) -> list[int]:
+    return rust_comments(sample(f"rust/{name}.rs"))
+
+
+class TestRustComments:
+    def test_a_line_comment_is_reported(self) -> None:
+        assert _rust("line_comment_reported") == [2]
+
+    def test_a_comment_after_code_on_the_same_line_is_reported(self) -> None:
+        assert _rust("comment_after_code_reported") == [2]
+
+    def test_a_block_comment_is_reported_at_its_first_line(self) -> None:
+        assert _rust("block_comment_reported_first_line") == [2]
+
+    @pytest.mark.parametrize("name", RUST_DOC_COMMENTS)
+    def test_a_doc_comment_is_reported_once_at_its_first_line(self, name: str) -> None:
+        assert _rust(name) == [1]
+
+    def test_a_nested_block_comment_is_reported_once_at_its_first_line(self) -> None:
+        assert _rust("nested_block_comment_reported_once") == [2]
+
+    def test_a_comment_in_a_macro_rules_body_is_reported(self) -> None:
+        assert _rust("comment_in_macro_rules_reported") == [2]
+
+    def test_a_shebang_on_the_first_line_is_not_reported(self) -> None:
+        assert _rust("shebang_not_reported") == []
+
+    def test_an_inner_attribute_on_the_first_line_is_not_reported(self) -> None:
+        assert _rust("inner_attribute_not_reported") == []
+
+    def test_a_double_slash_inside_a_string_is_not_reported(self) -> None:
+        assert _rust("double_slash_in_string") == []
+
+    def test_a_block_opener_inside_a_raw_string_is_not_reported(self) -> None:
+        assert _rust("block_opener_in_raw_string") == []
+
+    def test_a_slash_character_literal_is_not_reported(self) -> None:
+        assert _rust("slash_character_literal") == []
+
+
 class TestParsedComments:
     def test_a_grammar_named_directly_reads_its_comments(self) -> None:
         text = sample("parsed/grammar_named_directly_reads_comments.hcl")
@@ -623,6 +671,11 @@ class TestReaderFor:
     ) -> None:
         assert reader_for(f"rtl/counter{suffix}") is systemverilog_comments
 
+    def test_a_rust_file_gets_the_rust_reader(self) -> None:
+        assert reader_for("src/counting.rs") is rust_comments
+
+
+class TestNoReaderFor:
     def test_a_map_file_gets_no_reader(self) -> None:
         assert reader_for("dist/app.js.map") is None
 

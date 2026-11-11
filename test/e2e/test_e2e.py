@@ -5,6 +5,7 @@ from typing import TYPE_CHECKING
 from test_trees import (
     CLEAN_PROJECT,
     COMPONENT,
+    CRATE,
     DESIGN,
     EXCLUDE_VENDORED,
     EXTENSION,
@@ -165,6 +166,12 @@ class TestTheCommandOverEachLanguage:
     ) -> None:
         write_tree({**CLEAN_PROJECT, DESIGN: "project/commented_systemverilog.sv"})
         assert DESIGN in run_cli_subprocess(FULL_RUN)[1]
+
+    def test_reads_a_rust_file(
+        self, write_tree: WriteTree, run_cli_subprocess: RunCli
+    ) -> None:
+        write_tree({**CLEAN_PROJECT, CRATE: "project/commented_rust.rs"})
+        assert CRATE in run_cli_subprocess(FULL_RUN)[1]
 
     def test_reports_a_comment_in_a_workflow_run_script(
         self, write_tree: WriteTree, run_cli_subprocess: RunCli
