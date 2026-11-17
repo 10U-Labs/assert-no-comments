@@ -548,11 +548,11 @@ class TestSystemverilogComments:
     def test_a_line_comment_ends_at_the_backslash_that_continues_a_define(self) -> None:
         assert _hdl("comment_ends_at_the_backslash") == [1, 2]
 
-    def test_the_grammar_ends_a_define_inside_a_block_comment(self) -> None:
-        assert _hdl("block_comment_over_lines_in_define") == [2]
+    def test_a_block_comment_over_lines_in_a_define_is_reported_at_its_first_line(self) -> None:
+        assert _hdl("block_comment_over_lines_in_define_reported_first_line") == [1, 2]
 
-    def test_the_grammar_ends_a_define_inside_a_triple_quoted_string(self) -> None:
-        assert _hdl("triple_quoted_string_in_define") == [2, 3]
+    def test_a_double_slash_in_a_triple_quoted_define_string_is_not_reported(self) -> None:
+        assert _hdl("double_slash_in_triple_quoted_define_string") == [3]
 
     def test_a_triple_quoted_string_outside_a_macro_is_not_reported(self) -> None:
         assert _hdl("triple_quoted_string_outside_macro") == []

@@ -194,18 +194,6 @@ on, and is reported there as [tree-sitter/tree-sitter-c#335][preproc-arg].
 
 [preproc-arg]: https://github.com/tree-sitter/tree-sitter-c/issues/335
 
-Two limits belong to the SystemVerilog grammar. It ends the text of a
-`` `define `` at the first newline with no backslash before it, even inside a
-block comment or a triple-quoted string, and reads the rest of that comment or
-string as code. In `` `define H(x) or /* a `` followed by `b */ #x`, the block
-comment opening on the first line is lost, and in `` `define T """ `` followed
-by `x // y`, the `// y` inside the string is reported. Both are reported
-upstream, as [gmlarumbe/tree-sitter-systemverilog#87][macro-block] and
-[gmlarumbe/tree-sitter-systemverilog#88][macro-string].
-
-[macro-block]: https://github.com/gmlarumbe/tree-sitter-systemverilog/issues/87
-[macro-string]: https://github.com/gmlarumbe/tree-sitter-systemverilog/issues/88
-
 ## What is walked
 
 A directory argument is read recursively. Hidden directories are read, because

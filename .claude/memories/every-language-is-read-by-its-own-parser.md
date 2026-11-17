@@ -55,11 +55,10 @@ package publishes and does not use, and the nine it does use could no longer
 move independently.
 
 A grammar's own defect stays. `tree-sitter-c`, which `tree-sitter-cpp` builds
-on, ends a `#define` body at the first `/*` even inside a string, and
-`tree-sitter-systemverilog` ends a `` `define ``'s text at a newline inside a
-block comment or a triple-quoted string. The only workaround is reading
-characters. So each defect is written in `README.md` and pinned by a unit test
-that turns red when a grammar release fixes it, rather than patched here.
+on, ends a `#define` body at the first `/*` even inside a string. The only
+workaround is reading characters. So each defect is written in `README.md` and
+pinned by a unit test that turns red when a grammar release fixes it, rather
+than patched here.
 
 An unterminated block comment is not reported. A grammar sees an unterminated
 `/*` as text it cannot place and produces an `ERROR` node rather than a comment.
